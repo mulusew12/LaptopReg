@@ -18,6 +18,7 @@ const Login = () => {
     setFormData(prevState => ({
       ...prevState,
       [name]: value 
+      
     }));
   };
 
