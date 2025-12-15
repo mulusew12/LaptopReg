@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+
 import { useAppContext } from '../auth/Context';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Success from '../shared/Success';
+import { useEffect, useState } from 'react';
 
 const Registration = () => {
     // ** Unchanged Functional Arrays **
     const operatingSystems = ['Windows', 'Linux', 'MacOS', 'Other'];
     const laptopBrands = ['Dell', 'HP', 'Lenovo', 'Apple', 'Acer', 'Asus', 'Other'];
-    const { user, formData, lists, setLists } = useAppContext()
+    const { user, formData, lists, setLists, axios } = useAppContext()
     const navigate = useNavigate();
 
     // ** Unchanged State **
@@ -134,82 +135,53 @@ const Registration = () => {
     };
 
     // ** Updated Submit Handler with validation checks **
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Final check before submission
-        if (existingRecords.studentIdExists) {
-            setErrors(prev => ({
-                ...prev,
-                studentId: 'This student already has a registered laptop'
-            }));
-            return;
-        }
-
-        if (existingRecords.serialNumberExists) {
-            setErrors(prev => ({
-                ...prev,
-                serialNumber: 'This laptop is already registered'
-            }));
-            return;
-        }
-
-        if (existingRecords.macAddressExists) {
-            setErrors(prev => ({
-                ...prev,
-                macAddress: 'This MAC Address is already registered'
-            }));
-            return;
-        }
-
-        if (validateForm()) {
-            // Create new laptop object with unique ID
-            const newLaptop = {
-                _id: generateUniqueId(),
-                ...laptopData,
-                verified: false,
-                createdAt: new Date().toISOString(),
-            };
-
-         
-
-            console.log('Form submitted successfully:', newLaptop);
-             toast.success('Registered successfully')
-            // Add to context
-            setLists(prev => [...prev, newLaptop]);
-
-            setTimeout(()=>{
-                   navigate('/success')
-            }, 2000)
-
-            // NOTE: API call placeholder is preserved
-        
-            setIsSubmitted(true);
-
-            // Reset form after 3 seconds
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+        try {
+            // Send to backend
+            const response = await axios.post('/api/laptops/register', laptopData);
+            
+            console.log('Laptop registered successfully:', response.data);
+            console.log('Backend _id:', response.data._id);
+            toast.success('Registered successfully');
+            
+            // Add to local state
+            setLists(prev => [...prev, response.data]);
+            
+            // Redirect
             setTimeout(() => {
-                setLaptopData({
-                    studentName: '',
-                    studentId: '',
-                    phone: '',
-                    email: '',
-                    serialNumber: '',
-                    macAddress: '',
-                    operatingSystem: '',
-                    laptopBrand: '',
-                    antiVirusInstalled: false,
-                    verified: false,
-                });
-                setExistingRecords({
-                    studentIdExists: false,
-                    serialNumberExists: false,
-                    macAddressExists: false,
-                });
-                setIsSubmitted(false);
-
-            }, 100);
+                navigate('/success');
+            }, 2000);
+            
+            // Reset form
+            setLaptopData({
+                studentName: '',
+                studentId: '',
+                phone: '',
+                email: '',
+                serialNumber: '',
+                macAddress: '',
+                operatingSystem: '',
+                laptopBrand: '',
+                antiVirusInstalled: false,
+            });
+            
+        } catch (error) {
+            console.error('Registration failed:', error);
+            
+            // Handle backend validation errors
+            if (error.response && error.response.data) {
+                const backendErrors = error.response.data;
+                setErrors(backendErrors);
+                toast.error('Registration failed. Please check errors.');
+            } else {
+                toast.error('Registration failed. Please try again.');
+            }
         }
-    };
+    }
+};
 
     // ** Updated Reset Handler **
     const handleReset = () => {

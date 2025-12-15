@@ -106,10 +106,10 @@ const Lists = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLists.map((list, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <tr key={list?.id} className="hover:bg-gray-50 transition-colors">
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                      onClick={() => navigate(`/list/${list._id}`)}
+                      onClick={() => navigate(`/verify/${list?.id}`)}
                     >
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">

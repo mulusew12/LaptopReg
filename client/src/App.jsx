@@ -54,11 +54,11 @@ const App = () => {
           // 5. Routes are only rendered after the welcome screen is gone
           <Routes>
             {/* 6. Correct component rendering: use element prop and JSX syntax */}
-            <Route path='/' element={ user ?  <Login /> : <AdminLayout/> } />
+            <Route path='/' element={ !user ?  <Login /> : <AdminLayout/> } />
             {/* Note: I'm assuming you meant to route to a Registration component, 
                but using Login as per your original import */}
-            <Route path='/register' element={ user ?  <Login /> : <Registration/> } /> 
-             <Route path='/list/:id' element={<Verify />} />
+            <Route path='/register' element={ !user ?  <Login /> : <Registration/> } /> 
+             <Route path='/verify/:id' element={<Verify />} />
              <Route path='/list' element={<Lists />} />
              <Route path='/success' element={<Success />} />
             {/* Example: A dedicated registration page */}

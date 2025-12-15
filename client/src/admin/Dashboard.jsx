@@ -27,9 +27,9 @@ const Dashboard = () => {
               <div className="p-2 gap-12 flex flex-col ">
                 <button
                   onClick={() => navigate('/register')}
-                  className="w-full text-left bg-blue-600 border-3 cursor-pointer p-4 hover:bg-gray-50   transition-colors duration-200 flex items-center justify-between group"
+                  className="w-full text-left bg-blue-600 border-3 border-blue-800 cursor-pointer p-4 hover:bg-blue-500   transition-colors duration-200 flex items-center justify-between group"
                 >
-                  <span className="text-white group-hover:text-gray-900 font-medium">
+                  <span className="text-white group-hover:text-gray-100 font-bold">
                     Register new laptop
                   </span>
                   <svg className="w-5 h-5 text-gray-100 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,10 +39,10 @@ const Dashboard = () => {
 
                 <button
                   onClick={() => setSelected('new')}
-                  className="w-full text-left bg-amber-500 border-3  cursor-pointer p-4 hover:bg-gray-50  transition-colors duration-200 flex items-center justify-between group relative"
+                  className="w-full text-left bg-amber-500 border-3 border-amber-700 cursor-pointer p-4 hover:bg-amber-400  transition-colors duration-200 flex items-center justify-between group relative"
                 >
                   <div>
-                    <span className="text-gray-100 group-hover:text-gray-900 font-medium">
+                    <span className="text-gray-100 group-hover:text-gray-100 font-bold">
                       Unverified Laptops
                     </span>
                  </div>
@@ -55,9 +55,9 @@ const Dashboard = () => {
 
                 <button
                   onClick={() => navigate('/list')}
-                  className="w-full text-left p-4 border-3  cursor-pointer bg-green-800 hover:bg-gray-50  transition-colors duration-200 flex items-center justify-between group"
+                  className="w-full text-left p-4 border-3 border-green-900  cursor-pointer bg-green-800 hover:bg-green-700  transition-colors duration-200 flex items-center justify-between group"
                 >
-                  <span className="text-gray-100 group-hover:text-gray-900 font-medium">
+                  <span className="text-gray-100 group-hover:text-gray-100 font-bold">
                     All laptops list
                   </span>
                   <svg className="w-5 h-5 text-gray-200 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ const Dashboard = () => {
                             )}
                           </div>
                           <button 
-                            onClick={() => navigate(`/list/${list._id || index}`)}
+                            onClick={() => navigate(`/verify/${list.id}`)}
                             className="w-full mt-4 text-sm bg-red-100 text-red-700 hover:bg-red-200 py-2 rounded-lg transition-colors duration-200 font-medium"
                           >
                             Verify Now

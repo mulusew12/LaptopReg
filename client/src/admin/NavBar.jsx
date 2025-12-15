@@ -1,7 +1,11 @@
 import React from 'react';
 import { FaBell, FaSearch } from 'react-icons/fa'; // Added FaSearch for the input
+import { useAppContext } from '../auth/Context';
 
 const NavBar = () => {
+
+
+    const { user, logout } = useAppContext();
   return (
     // Updated container: removed 'border', added flex justification, padding, shadow, and background
     <div className='flex items-center justify-between border z-60 border-blue-600 p-4 bg-white shadow-md shadow-green-400 fixed w-full'>
@@ -30,6 +34,7 @@ const NavBar = () => {
           className='w-full py-2 pl-10 pr-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150' 
         />
       </div>
+    
 
       {/* 3. Notification Icon Section */}
       {/* Added margin, larger icon, and hover effect for interactivity */}
@@ -40,6 +45,12 @@ const NavBar = () => {
         {/* Optional: Add a small notification dot */}
         <span className='absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500'></span>
       </div>
+        <button 
+      onClick={logout}
+      className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded"
+    >
+      Logout {user.name}
+    </button>
     </div>
   );
 };
