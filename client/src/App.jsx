@@ -11,11 +11,12 @@ import Lists from './admin/Lists';
 import Verify from './admin/Verify';
 import { Toaster} from 'react-hot-toast'
 import Success from './shared/Success';
+import Password from './shared/Password';
 
 // Use a loading state to conditionally show the Welcome screen
 const App = () => {
   // 1. Initialize state to track if the welcome screen is visible
-  const { user} = useAppContext();
+  const { user, form, setForm} = useAppContext();
   const [showWelcome, setShowWelcome] = useState(true);
   // 2. Use useEffect to handle the side effect (timer)
   useEffect(() => {
@@ -52,18 +53,26 @@ const App = () => {
           <Welcome />
         ) : (
           // 5. Routes are only rendered after the welcome screen is gone
+          <div>
+
+
+        
+         <NavBar/>
           <Routes>
             {/* 6. Correct component rendering: use element prop and JSX syntax */}
             <Route path='/' element={ !user ?  <Login /> : <AdminLayout/> } />
             {/* Note: I'm assuming you meant to route to a Registration component, 
                but using Login as per your original import */}
+              
             <Route path='/register' element={ !user ?  <Login /> : <Registration/> } /> 
-             <Route path='/verify/:id' element={<Verify />} />
-             <Route path='/list' element={<Lists />} />
+             <Route path='/verify/:id' element={!user ?  <Login /> :<Verify />} />
+             <Route path='/list' element={!user ?  <Login /> : <Lists />} />
              <Route path='/success' element={<Success />} />
+             <Route path='/password' element={<Password/>} />
             {/* Example: A dedicated registration page */}
             {/* <Route path='/register' element={<StudentRegistrationComponent />} /> */}
           </Routes>
+            </div>
         )}
       </div>
     

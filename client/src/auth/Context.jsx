@@ -28,7 +28,6 @@ export const AppProvider = ({children}) => {
         email: '',
         password: ''
     });
-
     // ✅ Logout function
     const logout = () => {
         setUser(null);
@@ -42,6 +41,12 @@ export const AppProvider = ({children}) => {
     }
     });
     
+     const [form, setForm] = useState({
+        password: '',
+        confirmPassword: '',
+      });
+      const [error, setError] = useState('');
+      const [show, setShow] = useState(false);
     // ✅ Single function to fetch laptops from backend
     const fetchLaptopsFromBackend = async () => {
         try {
@@ -50,8 +55,9 @@ export const AppProvider = ({children}) => {
             console.log("Fetched laptops from backend:", response.data.length);
         } catch (error) {
             console.error("Failed to fetch laptops:", error);
+            setLists(dummyLaptopData)
             // Fallback to dummy data only if backend is completely unavailable
-            setLists(dummyLaptopData);
+            
         }
     };
 
@@ -108,7 +114,10 @@ export const AppProvider = ({children}) => {
         selectedOS,
         setSelectedOS,
         filteredLists, 
-        verifiedLists
+        verifiedLists,
+        form,
+         setForm,
+
     };
     
     return (

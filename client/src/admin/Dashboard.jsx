@@ -121,7 +121,7 @@ const Dashboard = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 13l4 4L19 7" />
                       </svg>
                       <h3 className="text-lg font-medium text-gray-700 mb-2">All laptops verified</h3>
-                      <p className="text-gray-500">No unverified laptops found. All systems are up to date.</p>
+                      <p className="text-gray-500">No unverified laptops found. </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

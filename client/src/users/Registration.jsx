@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Success from '../shared/Success';
 import { useEffect, useState } from 'react';
+import { FaArrowCircleLeft, FaCheckCircle, FaList } from 'react-icons/fa';
 
 const Registration = () => {
     // ** Unchanged Functional Arrays **
     const operatingSystems = ['Windows', 'Linux', 'MacOS', 'Other'];
     const laptopBrands = ['Dell', 'HP', 'Lenovo', 'Apple', 'Acer', 'Asus', 'Other'];
     const { user, formData, lists, setLists, axios } = useAppContext()
+    const [showSuccess, setShowSuccess] = useState(false)
     const navigate = useNavigate();
 
     // ** Unchanged State **
@@ -149,11 +151,11 @@ const handleSubmit = async (e) => {
             
             // Add to local state
             setLists(prev => [...prev, response.data]);
-            
+            setShowSuccess(true);
             // Redirect
             setTimeout(() => {
-                navigate('/success');
-            }, 2000);
+                setShowSuccess(false);
+            }, 4000);
             
             // Reset form
             setLaptopData({
@@ -221,8 +223,84 @@ const handleSubmit = async (e) => {
 
     // ** RENDER START **
     return (
-        <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
-            <div className="w-full mx-auto">
+        <div className="w-full min-h-screen bg-gray-100 py-10 ">
+            <div className=" mx-auto">
+           {/* success */}
+          
+           <div className={ showSuccess ? 'fixed left-0  right-0 w-full': 'hidden'}>
+                <div className='items-center flex flex-col justify-center h-screen bg-gradient-to-br from-green-50 to-emerald-100'>
+                   {/* Animated Success Icon */}
+                   <div className='relative mb-8'>
+                     <div className='absolute inset-0 bg-green-400 rounded-full animate-ping opacity-20'></div>
+                     <FaCheckCircle className='text-green-500 text-9xl animate-bounce' />
+                   </div>
+             
+                   {/* Animated Text */}
+                   <h1 className='text-green-600 font-bold text-5xl md:text-6xl mb-4 animate-fade-in'>
+                     Registration Successful!
+                   </h1>
+                   
+                   {/* Subtitle with fade-in animation */}
+                   <p className='text-gray-600 text-xl mb-8 animate-slide-up opacity-0' style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+                     Welcome to our community!
+                   </p>
+             
+                   {/* Progress bar showing 3-second countdown */}
+                   <div className='w-64 h-1 bg-gray-200 rounded-full overflow-hidden mt-8'>
+                     <div className='h-full bg-green-500 animate-progress-bar'></div>
+                   </div>
+             
+                   {/* Redirect message */}
+                   <p className='text-gray-500 mt-4 text-sm'>
+                     Redirecting in 3 seconds...
+                   </p>
+             
+                   <style jsx>{`
+                     @keyframes fade-in {
+                       from {
+                         opacity: 0;
+                         transform: translateY(10px);
+                       }
+                       to {
+                         opacity: 1;
+                         transform: translateY(0);
+                       }
+                     }
+             
+                     @keyframes slide-up {
+                       from {
+                         opacity: 0;
+                         transform: translateY(20px);
+                       }
+                       to {
+                         opacity: 1;
+                         transform: translateY(0);
+                       }
+                     }
+             
+                     @keyframes progress-bar {
+                       from {
+                         width: 0%;
+                       }
+                       to {
+                         width: 100%;
+                       }
+                     }
+             
+                     .animate-fade-in {
+                       animation: fade-in 0.8s ease-out;
+                     }
+             
+                     .animate-slide-up {
+                       animation: slide-up 0.8s ease-out;
+                     }
+             
+                     .animate-progress-bar {
+                       animation: progress-bar 3s linear forwards;
+                     }
+                   `}</style>
+                 </div>
+                  </div>
 
                 {/* --- Main Card with Enhanced Shadow and Border --- */}
                 <div className="bg-white shadow-2xl rounded-xl p-8 md:p-12 border-t-8 border-indigo-600">
@@ -717,10 +795,12 @@ const handleSubmit = async (e) => {
                     )}
                 </div>
             </div>
-            <div onClick={()=>navigate('/')} className='fixed top-10 z-100 cursor-pointer py-1 bg-white border px-5 left-2'>
+            <div onClick={()=>navigate('/')} className='fixed top-22 flex items-center gap-3 justify-between z-100 cursor-pointer py-1 bg-white border px-5 left-2'>
+                 <FaArrowCircleLeft/>
                  <button className='cursor-pointer '>Back</button>
             </div>
-              <div onClick={()=>navigate('/list')} className='fixed top-10 z-100 cursor-pointer py-1 bg-white border px-5 right-2'>
+              <div onClick={()=>navigate('/list')} className='fixed top-22 flex items-center gap-3 justify-between z-100 cursor-pointer py-1 bg-white border px-5 right-2'>
+                 <FaList/>
                  <button className='cursor-pointer '>List</button>
             </div>
         </div>

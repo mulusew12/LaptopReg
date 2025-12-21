@@ -1,3 +1,8 @@
+
+import laptop from '/laptop.png'
+export const assets = {
+   laptop
+}
 export const dummyLaptopData = [
     
 {_id: 1,

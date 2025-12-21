@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @ComponentScan(basePackages = {
+    
     "com.mulusew.laptop_registration",
     "com.mulusew.laptop_registration.controller",
     "com.mulusew.laptop_registration.dto"

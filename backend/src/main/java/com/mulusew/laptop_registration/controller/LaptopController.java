@@ -2,23 +2,29 @@ package com.mulusew.laptop_registration.controller;
 
 import com.mulusew.laptop_registration.model.Laptop;
 import com.mulusew.laptop_registration.repository.LaptopRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/laptops")
-@RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173") // Simplified - remove allowCredentials
+@CrossOrigin(origins = "http://localhost:5173")
 public class LaptopController {
     
+    // MANUAL LOGGER
+    private static final Logger log = LoggerFactory.getLogger(LaptopController.class);
+    
     private final LaptopRepository laptopRepository;
+    
+    // MANUAL CONSTRUCTOR (required because @RequiredArgsConstructor isn't working)
+    public LaptopController(LaptopRepository laptopRepository) {
+        this.laptopRepository = laptopRepository;
+    }
     
     // 1. Create new laptop registration
     @PostMapping("/register")
@@ -44,11 +50,7 @@ public class LaptopController {
             return ResponseEntity.badRequest().body(errors);
         }
         
-        // Set timestamps
-        laptop.setCreatedAt(LocalDateTime.now());
-        laptop.setUpdatedAt(LocalDateTime.now());
-        
-        // Save to database
+        // Save to database (timestamps are handled by @CreationTimestamp and @UpdateTimestamp)
         Laptop savedLaptop = laptopRepository.save(laptop);
         log.info("Laptop registered successfully with ID: {}", savedLaptop.getId());
         
@@ -63,17 +65,17 @@ public class LaptopController {
         return ResponseEntity.ok(laptops);
     }
     
-    // 3. Get laptop by ID
+    // 3. Get laptop by ID - CHANGED from String to Long
     @GetMapping("/{id}")
-    public ResponseEntity<Laptop> getLaptopById(@PathVariable String id) {
+    public ResponseEntity<Laptop> getLaptopById(@PathVariable Long id) {
         return laptopRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    // 4. Update laptop
+    // 4. Update laptop - CHANGED from String to Long
     @PutMapping("/{id}")
-    public ResponseEntity<Laptop> updateLaptop(@PathVariable String id, @RequestBody Laptop laptop) {
+    public ResponseEntity<Laptop> updateLaptop(@PathVariable Long id, @RequestBody Laptop laptop) {
         return laptopRepository.findById(id)
                 .map(existingLaptop -> {
                     // Update fields
@@ -86,7 +88,6 @@ public class LaptopController {
                     existingLaptop.setOperatingSystem(laptop.getOperatingSystem());
                     existingLaptop.setLaptopBrand(laptop.getLaptopBrand());
                     existingLaptop.setAntiVirusInstalled(laptop.getAntiVirusInstalled());
-                    existingLaptop.setUpdatedAt(LocalDateTime.now());
                     
                     Laptop updated = laptopRepository.save(existingLaptop);
                     log.info("Updated laptop with ID: {}", id);
@@ -95,9 +96,9 @@ public class LaptopController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    // 5. Delete laptop
+    // 5. Delete laptop - CHANGED from String to Long
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLaptop(@PathVariable String id) {
+    public ResponseEntity<Void> deleteLaptop(@PathVariable Long id) {
         if (laptopRepository.existsById(id)) {
             laptopRepository.deleteById(id);
             log.info("Deleted laptop with ID: {}", id);
@@ -106,13 +107,12 @@ public class LaptopController {
         return ResponseEntity.notFound().build();
     }
     
-    // 6. Verify laptop (admin only)
+    // 6. Verify laptop (admin only) - CHANGED from String to Long
     @PutMapping("/{id}/verify")
-    public ResponseEntity<Laptop> verifyLaptop(@PathVariable String id) {
+    public ResponseEntity<Laptop> verifyLaptop(@PathVariable Long id) {
         return laptopRepository.findById(id)
                 .map(laptop -> {
                     laptop.setVerified(true);
-                    laptop.setUpdatedAt(LocalDateTime.now());
                     Laptop verified = laptopRepository.save(laptop);
                     log.info("Verified laptop with ID: {}", id);
                     return ResponseEntity.ok(verified);
@@ -132,12 +132,12 @@ public class LaptopController {
         return ResponseEntity.ok(results);
     }
     
-    // 8. Get stats
+    // 8. Get stats - FIXED VERSION
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         long total = laptopRepository.count();
-        long verified = laptopRepository.findByVerified(true).size();
-        long notVerified = laptopRepository.findByVerified(false).size();
+        long verified = laptopRepository.findByVerified(true).size(); // FIXED
+        long notVerified = laptopRepository.findByVerified(false).size(); // FIXED
         
         Map<String, Object> stats = new HashMap<>();
         stats.put("total", total);

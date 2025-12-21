@@ -1,57 +1,239 @@
-import React from 'react';
-import { FaBell, FaSearch } from 'react-icons/fa'; // Added FaSearch for the input
+import React, { useState } from 'react';
+import {
+  FaBell,
+  FaLockOpen,
+  FaUser,
+  FaBars,
+  FaLock,
+  FaKey
+} from 'react-icons/fa';
 import { useAppContext } from '../auth/Context';
+import { useNavigate } from 'react-router-dom';
 
 const NavBar = () => {
+  const navigate = useNavigate()
+  const { user, logout, form } = useAppContext();
+  const [isLocked, setIsLocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [openMenu, setOpenMenu] = useState(null);
+  const [error, setError] = useState('');
+  
+  const toggleMenu = (menu) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
 
+// In NavBar component
+const handleLockPage = () => {
+  // Get password from localStorage where Password component saved it
+  const userPassword = localStorage.getItem('userPassword');
+  
+  if (userPassword) {
+    setIsLocked(true);
+    setOpenMenu(null);
+    setPasswordInput('');
+    setError('');
+  } else {
+    alert('No password found. Please set a password first.');
+    // Optionally navigate to password setup page
+    // navigate('/password');
+  }
+};
 
-    const { user, logout } = useAppContext();
+const handleUnlock = () => {
+  // Compare with localStorage password
+  const storedPassword = localStorage.getItem('userPassword');
+  
+  if (passwordInput === storedPassword) {
+    setIsLocked(false);
+    setPasswordInput('');
+    setError('');
+  } else {
+    setError('Incorrect password. Please try again.');
+    setPasswordInput('');
+  }
+};
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleUnlock();
+    }
+  };
+
   return (
-    // Updated container: removed 'border', added flex justification, padding, shadow, and background
-    <div className='flex items-center justify-between border z-60 border-blue-600 p-4 bg-white shadow-md shadow-green-400 fixed w-full'>
-      {/* 1. Logo Section */}
-      {/* Adjusted image size and added margin for separation */}
-      <div className="flex items-center">
-        <img 
-          className='w-16 h-16 object-contain mr-4' // Smaller, more appropriate size for a nav bar logo
-          src="/aastuLogo.png" 
-          alt="AASTU Logo" 
-        />
-        {/* Optional: Add a title next to the logo */}
-        <span className='text-xl font-semibold text-indigo-700 hidden sm:block'>
-          AASTU Portal
-        </span>
+    <header className="fixed top-0 left-0 w-full z-50 bg-white border-b p-2 border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between px-4 py-3 md:px-6">
+
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <img
+            src="/aastuLogo.png"
+            alt="AASTU Logo"
+            className="w-10 h-10 object-contain"
+          />
+          <span className="hidden sm:block text-lg font-semibold text-indigo-700">
+            AASTU Portal
+          </span>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+
+          {/* 🔔 Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => toggleMenu('bell')}
+              className="border p-3 rounded-md hover:bg-gray-100"
+              aria-label="Notifications"
+            >
+              <FaBell className="text-xl text-gray-600" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
+            </button>
+
+            {openMenu === 'bell' && (
+              <div className="absolute right-0 top-14 w-64 bg-white border rounded-md shadow-lg p-4 text-sm text-gray-700 z-10">
+                <h3 className="font-semibold mb-2">Notifications</h3>
+                <ul className="space-y-1">
+                  <li className="p-2 rounded hover:bg-gray-100">Message 1</li>
+                  <li className="p-2 rounded hover:bg-gray-100">Message 2</li>
+                  <li className="p-2 rounded hover:bg-gray-100">Message 3</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* 🔐 Security */}
+          <div className="relative">
+            <button
+              onClick={() => toggleMenu('lock')}
+              className="border p-3 rounded-md hover:bg-gray-100"
+              aria-label="Security"
+            >
+              <FaLockOpen className="text-xl text-gray-600" />
+            </button>
+
+            {openMenu === 'lock' && (
+              <div className="absolute right-0 top-14 w-56 bg-white border rounded-md shadow-lg p-4 text-sm text-gray-700 z-10">
+                <h3 className="font-semibold mb-2">Security</h3>
+                <ul className="space-y-1">
+                  <li 
+                    onClick={handleLockPage}
+                    className="p-2 rounded hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                  >
+                    <FaLock className="text-sm" />
+                    Lock page
+                  </li>
+                  <li onClick={()=>navigate('/password')} className="p-2 rounded hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                    <FaKey className="text-sm" />
+                    Change password
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* 👤 Profile */}
+          <div className="relative">
+            <button
+              onClick={() => toggleMenu('profile')}
+              className="border p-3 rounded-md hover:bg-gray-100"
+              aria-label="Profile"
+            >
+              <FaUser className="text-xl text-gray-600" />
+            </button>
+
+            {openMenu === 'profile' && (
+              <div className="absolute right-0 top-14 w-56 bg-white border rounded-md shadow-lg p-4 text-sm text-gray-700 z-10">
+                <h3 className="font-semibold mb-2">Profile</h3>
+                <ul className="space-y-1">
+                  <li className="p-2 rounded hover:bg-gray-100 cursor-pointer">
+                    View profile
+                  </li>
+                  <li className="p-2 rounded hover:bg-gray-100 cursor-pointer">
+                    Settings
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* User + Logout */}
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              {user?.name}
+            </span>
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+
+          {/* Mobile menu icon */}
+          <button className="sm:hidden text-xl text-gray-600">
+            <FaBars />
+          </button>
+        </div>
       </div>
 
-      {/* 2. Search Input Section */}
-      {/* Added focus styling and better alignment with a search icon */}
-      <div className='relative flex items-center flex-grow mx-8 max-w-lg'>
-        <FaSearch className='absolute left-3 text-gray-400 pointer-events-none' />
-        <input 
-          type="text" 
-          placeholder="Filter laptops by user name or by ID"
-          // Updated styling: full width, generous padding, rounded corners, focused border color
-          className='w-full py-2 pl-10 pr-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150' 
-        />
-      </div>
-    
-
-      {/* 3. Notification Icon Section */}
-      {/* Added margin, larger icon, and hover effect for interactivity */}
-      <div className='relative'>
-        <FaBell 
-          className='text-2xl text-gray-600 hover:text-indigo-600 cursor-pointer transition duration-150'
-        />
-        {/* Optional: Add a small notification dot */}
-        <span className='absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500'></span>
-      </div>
-        <button 
-      onClick={logout}
-      className="bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded"
-    >
-      Logout {user.name}
-    </button>
-    </div>
+      {/* Lock Screen Overlay */}
+      {isLocked && (
+        <div className='fixed top-0 left-0 w-full h-full bg-green-950 z-[9999] flex items-center justify-center'>
+          <div className='flex flex-col items-center justify-center text-white gap-6 p-8 bg-green-900/50 rounded-lg backdrop-blur-sm'>
+            <FaLock className='text-8xl animate-pulse'/>
+            <h1 className='text-5xl md:text-6xl font-bold'>LOCKED</h1>
+            <p className='text-lg text-center text-gray-300'>
+              Enter your password to unlock the page
+            </p>
+            
+            <div className='flex flex-col gap-4 w-full max-w-md'>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => {
+                  setPasswordInput(e.target.value);
+                  setError('');
+                }}
+                onKeyPress={handleKeyPress}
+                placeholder="Enter your password"
+                className='w-full p-3 rounded-md bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50'
+                autoFocus
+              />
+              
+              {error && (
+                <p className='text-red-300 text-sm text-center'>{error}</p>
+              )}
+              
+              <div className='flex gap-4'>
+                <button 
+                  onClick={handleUnlock}
+                  className='flex-1 flex gap-3 items-center justify-center border border-white p-3 cursor-pointer rounded-md hover:bg-white/10 transition-colors'
+                >
+                  <FaKey/>
+                  Unlock
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    setIsLocked(false);
+                    setPasswordInput('');
+                    setError('');
+                    navigate('/password')
+                  }}
+                  className='px-6 py-3 border border-transparent hover:border-white rounded-md hover:bg-white/5 transition-colors'
+                >
+                  Forget password?
+                </button>
+              </div>
+            </div>
+            
+            <div className='mt-4 text-sm text-gray-400'>
+              <p>User: {user?.name || user?.email || 'Unknown User'}</p>
+              <p className='text-xs mt-1'>Locked at: {new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
