@@ -12,51 +12,46 @@ import Success from './shared/Success';
 import Password from './shared/Password';
 import Welcome from './shared/Welcome';
 
+const FIRST_VISIT_KEY = 'has_seen_welcome';
+
 const App = () => {
   const { user } = useAppContext();
   const [showWelcome, setShowWelcome] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
-    // Show welcome screen for 3 seconds
+    // Check if user has already seen welcome page
+    const hasSeenWelcome = localStorage.getItem(FIRST_VISIT_KEY);
+    
+    // If user has seen welcome before, skip it
+    if (hasSeenWelcome === 'true') {
+      setShowWelcome(false);
+      return;
+    }
+    
+    // Only set timer if we're showing welcome
     const timer = setTimeout(() => {
       setShowWelcome(false);
+      // Mark as seen only when it completes naturally
+      localStorage.setItem(FIRST_VISIT_KEY, 'true');
     }, 3000);
 
-    // Skip welcome if user is already logged in
-    if (user) {
-      setShowWelcome(false);
-      clearTimeout(timer);
-    }
-
     return () => clearTimeout(timer);
-  }, [user]);
-
-  // Determine if NavBar should be shown
-  const shouldShowNavBar = user && 
-    location.pathname !== '/' && 
-    location.pathname !== '/register' && 
-    location.pathname !== '/success' && 
-    location.pathname !== '/password';
+  }, []);
 
   // Show welcome screen
   if (showWelcome) {
-    return (
-      <>
-        <Toaster />
-        <Welcome />
-      </>
-    );
+    return <Welcome />;
   }
 
   return (
     <>
       <Toaster />
       
-      {/* Conditionally render NavBar */}
-      {shouldShowNavBar && <NavBar />}
+      {/* Always show NavBar on all pages */}
+      <NavBar />
       
-      <div className={shouldShowNavBar ? " min-h-screen bg-gray-50" : "min-h-screen bg-gray-50"}>
+      <div className="min-h-screen bg-gray-50">
         <Routes>
           {/* Public Routes */}
           <Route 
@@ -83,12 +78,6 @@ const App = () => {
             path="/verify/:id" 
             element={user ? <Verify /> : <Navigate to="/" replace />} 
           />
-          
-          {/* Add Device Route - if you have this component */}
-          {/* <Route 
-            path="/add-device" 
-            element={user ? <AddDevice /> : <Navigate to="/" replace />} 
-          /> */}
           
           {/* Redirect unknown routes */}
           <Route 

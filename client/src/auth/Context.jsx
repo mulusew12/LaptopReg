@@ -32,6 +32,7 @@ export const AppProvider = ({children}) => {
     });
 
       const [showDel, setShowDel] = useState(false)
+       const [isDarkMode, setIsDarkMode] = useState(true) 
     
     // ✅ Logout function
     const logout = () => {
@@ -428,7 +429,8 @@ export const AppProvider = ({children}) => {
         fetchLaptopsFromBackend,
         transformToBackendFormat,
         transformToFrontendFormat,
-        showDel, setShowDel
+        showDel, setShowDel,
+        isDarkMode, setIsDarkMode
     };
     
     return (

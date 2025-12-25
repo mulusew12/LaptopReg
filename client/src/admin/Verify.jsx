@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../auth/Context';
 import toast from 'react-hot-toast';
-import { FaArrowLeft, FaEdit, FaTrash, FaCheckCircle, FaClock, FaHistory, FaLaptop, FaUser, FaPhone, FaEnvelope, FaShieldAlt, FaCalendarAlt, FaDownload, FaExclamation } from 'react-icons/fa';
+import { 
+  FaArrowLeft, FaEdit, FaTrash, FaCheckCircle, FaClock, FaHistory, 
+  FaLaptop, FaUser, FaPhone, FaEnvelope, FaShieldAlt, FaCalendarAlt, 
+  FaDownload, FaExclamation 
+} from 'react-icons/fa';
 
 const Verify = () => {
-    const { lists, setLists, axios, updateDevice, deleteDevice, showDel, setShowDel } = useAppContext();
+    const { lists, setLists, axios, updateDevice, deleteDevice, showDel, setShowDel, isDarkMode } = useAppContext();
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -16,6 +20,46 @@ const Verify = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [more, setMore] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(null);
+    const [confirm, setConfirm] = useState(false);
+    const [confirmIn, setConfirmIn] = useState(false);
+
+    // ================= THEME CONFIGURATION =================
+    const theme = {
+        bg: isDarkMode 
+            ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900/50' 
+            : 'bg-gradient-to-br from-gray-50 to-blue-50',
+        text: isDarkMode ? 'text-gray-100' : 'text-gray-900',
+        textSecondary: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+        cardBg: isDarkMode ? 'bg-gray-800/95' : 'bg-white/95',
+        inputBg: isDarkMode ? 'bg-gray-700/50' : 'bg-white/90',
+        inputBorder: isDarkMode ? 'border-gray-600' : 'border-gray-300',
+        hover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
+        shadow: isDarkMode ? 'shadow-xl shadow-black/30' : 'shadow-xl shadow-gray-200/50',
+        successBg: isDarkMode ? 'bg-green-900/30' : 'bg-gradient-to-r from-green-50 to-emerald-50',
+        successBorder: isDarkMode ? 'border-green-800' : 'border-green-200',
+        errorBg: isDarkMode ? 'bg-red-900/30' : 'bg-gradient-to-r from-red-50 to-red-100',
+        errorBorder: isDarkMode ? 'border-red-800' : 'border-red-200',
+        warningBg: isDarkMode ? 'bg-amber-900/30' : 'bg-gradient-to-r from-amber-50 to-orange-50',
+        warningBorder: isDarkMode ? 'border-amber-800' : 'border-amber-200',
+        infoBg: isDarkMode ? 'bg-blue-900/30' : 'bg-gradient-to-r from-blue-50 to-indigo-50',
+        infoBorder: isDarkMode ? 'border-blue-800' : 'border-blue-200',
+        gradientHeader: isDarkMode 
+            ? 'bg-gradient-to-r from-gray-800 to-gray-900' 
+            : 'bg-gradient-to-r from-gray-50 to-blue-50',
+        gradientPrimary: isDarkMode 
+            ? 'bg-gradient-to-r from-blue-700 to-blue-600' 
+            : 'bg-gradient-to-r from-blue-600 to-blue-500',
+        gradientSuccess: isDarkMode 
+            ? 'bg-gradient-to-r from-green-700 to-green-600' 
+            : 'bg-gradient-to-r from-green-600 to-emerald-600',
+        gradientDanger: isDarkMode 
+            ? 'bg-gradient-to-r from-red-700 to-red-600' 
+            : 'bg-gradient-to-r from-red-600 to-red-500',
+        gradientWarning: isDarkMode 
+            ? 'bg-gradient-to-r from-amber-700 to-amber-600' 
+            : 'bg-gradient-to-r from-amber-500 to-amber-600',
+    };
 
     // ================= Helper function to normalize data =================
     const normalizeDeviceData = (device) => {
@@ -23,7 +67,6 @@ const Verify = () => {
 
         return {
             ...device,
-            // Ensure both forms exist for compatibility
             studentId: device.studentId || device.studentID || '',
             verified: device.verified || device.Verified || false,
             studentID: device.studentID || device.studentId || '',
@@ -45,10 +88,10 @@ const Verify = () => {
     // ================= Initialize first IN status =================
     const initializeFirstInStatus = (device) => {
         if (!device) return;
-        
+
         const numericId = Number(device.id);
         const savedHistory = JSON.parse(localStorage.getItem(`pcHistory_${numericId}`)) || [];
-        
+
         // If no history exists, create initial IN status using registration date
         if (savedHistory.length === 0 && device.createdAt) {
             const firstInEntry = {
@@ -59,21 +102,20 @@ const Verify = () => {
                 deviceName: device.studentName || `Device ${device.id}`,
                 note: 'Initial registration - Device marked as IN'
             };
-            
+
             const initialHistory = [firstInEntry];
             setPcStatusHistory(initialHistory);
             localStorage.setItem(`pcHistory_${numericId}`, JSON.stringify(initialHistory));
-            
+
             // Also update main PC status
             const pcStatus = JSON.parse(localStorage.getItem('pcStatus')) || {};
             pcStatus[numericId] = 'in';
             localStorage.setItem('pcStatus', JSON.stringify(pcStatus));
-            
+
             setCurrentStatus('in');
-            console.log('✅ Created initial IN status from registration date');
         } else if (savedHistory.length > 0) {
             setPcStatusHistory(savedHistory);
-            
+
             // Get current status from the last entry
             const lastEntry = savedHistory[savedHistory.length - 1];
             setCurrentStatus(lastEntry?.status || 'in');
@@ -91,6 +133,25 @@ const Verify = () => {
         }
     };
 
+    // ================= TOAST THEME =================
+    const showToast = (message, type = 'success') => {
+        const toastStyle = {
+            style: {
+                background: isDarkMode ? '#1f2937' : '#fff',
+                color: isDarkMode ? '#fff' : '#000',
+                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+            },
+        };
+
+        if (type === 'success') {
+            toast.success(message, toastStyle);
+        } else if (type === 'error') {
+            toast.error(message, toastStyle);
+        } else {
+            toast(message, { ...toastStyle, icon: 'ℹ️' });
+        }
+    };
+
     // ================= Fetch Laptop Details =================
     useEffect(() => {
         const fetchLaptopDetails = async () => {
@@ -99,7 +160,7 @@ const Verify = () => {
                 const numericId = Number(id);
 
                 if (isNaN(numericId)) {
-                    toast.error('Invalid laptop ID');
+                    showToast('Invalid laptop ID', 'error');
                     return;
                 }
 
@@ -108,20 +169,19 @@ const Verify = () => {
                     const response = await axios.get(`/api/laptops/${numericId}`);
                     const normalizedData = normalizeDeviceData(response.data);
                     setList(normalizedData);
-                    
+
                     // Initialize first IN status after setting list
                     setTimeout(() => {
                         initializeFirstInStatus(normalizedData);
                     }, 100);
-                    
+
                 } catch (apiError) {
-                    console.log('API fetch failed, trying context data:', apiError);
                     // Fallback to context data
                     const deviceFromContext = lists.find(device => device.id === numericId);
                     if (deviceFromContext) {
                         const normalizedDevice = normalizeDeviceData(deviceFromContext);
                         setList(normalizedDevice);
-                        
+
                         // Initialize first IN status after setting list
                         setTimeout(() => {
                             initializeFirstInStatus(normalizedDevice);
@@ -133,7 +193,7 @@ const Verify = () => {
 
             } catch (error) {
                 console.error(error);
-                toast.error('Failed to load laptop details');
+                showToast('Failed to load laptop details', 'error');
             } finally {
                 setLoadingData(false);
             }
@@ -154,10 +214,7 @@ const Verify = () => {
 
         // Check if status is already the same
         if (currentStatus === newStatus) {
-            toast(`Laptop is already ${newStatus.toUpperCase()}`, {
-                icon: 'ℹ️',
-                duration: 2000
-            });
+            showToast(`Laptop is already ${newStatus.toUpperCase()}`, 'info');
             return;
         }
 
@@ -166,7 +223,7 @@ const Verify = () => {
         const needsInBeforeOut = newStatus === 'out' && (!lastEntry || lastEntry.status === 'out');
 
         if (needsInBeforeOut) {
-            toast.error('Cannot mark OUT without marking IN first');
+            showToast('Cannot mark OUT without marking IN first', 'error');
             return;
         }
 
@@ -193,7 +250,7 @@ const Verify = () => {
         // Update current status state
         setCurrentStatus(newStatus);
 
-        toast.success(`Laptop marked as ${newStatus.toUpperCase()} successfully!`);
+        showToast(`Laptop marked as ${newStatus.toUpperCase()} successfully!`);
     };
 
     // ================= Get Latest Status Times =================
@@ -212,9 +269,9 @@ const Verify = () => {
             }
         });
 
-        return { 
-            lastIn, 
-            lastOut, 
+        return {
+            lastIn,
+            lastOut,
             registrationDate: list?.createdAt || null,
             firstIn: pcStatusHistory.length > 0 ? pcStatusHistory[0]?.timestamp : null
         };
@@ -256,10 +313,10 @@ const Verify = () => {
             setLists(updatedLists);
             setList(normalizedDevice);
 
-            toast.success('Laptop verified successfully!');
+            showToast('Laptop verified successfully!');
         } catch (error) {
             console.error(error);
-            toast.error('Failed to verify laptop');
+            showToast('Failed to verify laptop', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -281,23 +338,17 @@ const Verify = () => {
                 delete pcStatus[list.id];
                 localStorage.setItem('pcStatus', JSON.stringify(pcStatus));
 
-                toast.success('Laptop registration deleted successfully');
+                showToast('Laptop deleted successfully');
                 navigate('/list');
             } else {
-                toast.error('Failed to delete laptop');
+                showToast('Failed to delete laptop', 'error');
             }
         } catch (error) {
             console.error(error);
-            toast.error('Failed to delete laptop');
+            showToast('Failed to delete laptop', 'error');
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // ================= Edit Info =================
-    const handleEditInfo = () => {
-        // Navigate to edit page with the current device data
-        navigate(`/edit/${list.id}`, { state: { device: list } });
     };
 
     // ================= Export History =================
@@ -328,22 +379,26 @@ const Verify = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        toast.success('History exported successfully');
+        showToast('History exported successfully');
     };
 
     // ================= Loading Screen =================
     if (loadingData) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+            <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${theme.bg}`}>
                 <div className="text-center">
                     <div className="relative">
-                        <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className={`w-16 h-16 border-4 rounded-full ${
+                            isDarkMode ? 'border-blue-800' : 'border-blue-200'
+                        }`}></div>
+                        <div className={`absolute top-0 left-0 w-16 h-16 border-4 border-t-transparent rounded-full animate-spin ${
+                            isDarkMode ? 'border-blue-500' : 'border-blue-600'
+                        }`}></div>
                     </div>
-                    <p className="mt-6 text-lg font-medium text-gray-700">
+                    <p className={`mt-6 text-lg font-medium ${theme.text}`}>
                         Loading laptop details...
                     </p>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className={`text-sm mt-2 ${theme.textSecondary}`}>
                         ID: {id}
                     </p>
                 </div>
@@ -354,8 +409,31 @@ const Verify = () => {
     const { lastIn, lastOut, registrationDate, firstIn } = getLatestStatusTimes();
     const status = getCurrentStatus();
 
+    // Helper component for info items
+    const InfoItem = ({ label, value, icon, highlight = false, fontMono = false }) => (
+        <div className={`p-3 rounded-lg border ${
+            highlight 
+                ? isDarkMode 
+                    ? 'border-blue-800 bg-blue-900/30' 
+                    : 'border-blue-200 bg-blue-50'
+                : isDarkMode 
+                    ? 'border-gray-700 bg-gray-900/30' 
+                    : 'border-gray-200 bg-gray-50'
+        }`}>
+            <div className={`text-xs font-medium mb-1 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>{label}</div>
+            <div className={`flex items-center gap-2 ${fontMono ? 'font-mono' : ''}`}>
+                {icon}
+                <span className={`font-semibold truncate ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                }`}>{value || 'N/A'}</span>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-25 px-4 sm:px-6 lg:px-8">
+        <div className={`min-h-screen py-25 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${theme.bg}`}>
             <div className="max-w-7xl mx-auto">
                 {/* Header Section */}
                 <div className="mb-8">
@@ -363,49 +441,59 @@ const Verify = () => {
                         <div>
                             <button
                                 onClick={() => navigate('/list')}
-                                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4 transition-colors group"
+                                className={`inline-flex items-center gap-2 font-medium mb-4 transition-colors group ${
+                                    isDarkMode 
+                                        ? 'text-blue-400 hover:text-blue-300' 
+                                        : 'text-blue-600 hover:text-blue-700'
+                                }`}
                             >
                                 <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
                                 Back to List
                             </button>
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+                            <h1 className={`text-3xl md:text-4xl font-extrabold mb-2 ${
+                                isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                            }`}>
                                 Laptop Verification Details
                             </h1>
-                            <p className="text-gray-600 mt-2">
+                            <p className={theme.textSecondary}>
                                 Review, verify, and manage laptop registrations
                             </p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={handleEditInfo}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg"
-                            >
-                                <FaEdit />
-                                Edit Info
-                            </button>
-                            <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-white shadow-lg">
-                                <img
-                                    className="w-full h-full object-cover"
-                                    src="/laptop.png"
-                                    alt="Laptop"
-                                />
-                            </div>
                         </div>
                     </div>
 
                     {/* Status Badge */}
                     {list && (
-                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-200">
-                            <span className={`w-3 h-3 rounded-full ${(list.verified || list.Verified) ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-                            <span className={`font-semibold ${(list.verified || list.Verified) ? 'text-green-700' : 'text-red-700'}`}>
+                        <div className={`inline-flex items-center gap-3 px-4 py-2 rounded-xl shadow-sm border ${
+                            isDarkMode 
+                                ? 'bg-gray-800/50 border-gray-700' 
+                                : 'bg-white border-gray-200'
+                        }`}>
+                            <span className={`w-3 h-3 rounded-full ${
+                                (list.verified || list.Verified) 
+                                    ? 'bg-green-500 animate-pulse' 
+                                    : 'bg-red-500'
+                            }`}></span>
+                            <span className={`font-semibold ${
+                                (list.verified || list.Verified) 
+                                    ? isDarkMode ? 'text-green-400' : 'text-green-700'
+                                    : isDarkMode ? 'text-red-400' : 'text-red-700'
+                            }`}>
                                 {(list.verified || list.Verified) ? '✓ Verified' : '✗ Not Verified'}
                             </span>
-                            <span className="text-gray-400">|</span>
-                            <span className="text-gray-600">Student ID: <strong>{list.studentId || list.studentID}</strong></span>
-                            <span className="text-gray-400">|</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${status === 'in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }`}>
+                            <span className={isDarkMode ? 'text-gray-600' : 'text-gray-400'}>|</span>
+                            <span className={theme.textSecondary}>
+                                Student ID: <strong>{list.studentId || list.studentID}</strong>
+                            </span>
+                            <span className={isDarkMode ? 'text-gray-600' : 'text-gray-400'}>|</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                status === 'in' 
+                                    ? isDarkMode 
+                                        ? 'bg-green-900/30 text-green-300' 
+                                        : 'bg-green-100 text-green-800'
+                                    : isDarkMode 
+                                        ? 'bg-red-900/30 text-red-300' 
+                                        : 'bg-red-100 text-red-800'
+                            }`}>
                                 Status: {status.toUpperCase()}
                             </span>
                         </div>
@@ -415,22 +503,28 @@ const Verify = () => {
                 {list ? (
                     <div className="space-y-6">
                         {/* Main Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+                        <div className={`rounded-2xl border overflow-hidden ${theme.border} ${theme.shadow} ${theme.cardBg}`}>
                             {/* Card Header */}
-                            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+                            <div className={`p-6 border-b ${theme.border} ${theme.gradientHeader}`}>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
-                                        <h2 className="text-xl font-bold text-gray-900">
+                                        <h2 className={`text-xl font-bold ${
+                                            isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                        }`}>
                                             {list.studentName || 'Unknown User'}
                                         </h2>
-                                        <p className="text-gray-600 mt-1">
+                                        <p className={theme.textSecondary}>
                                             Laptop Registration Details
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={handleExportHistory}
-                                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-lg font-medium transition-colors"
+                                            className={`flex items-center gap-2 px-4 py-2 border rounded-lg font-medium transition-colors ${
+                                                isDarkMode 
+                                                    ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 text-gray-300' 
+                                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700'
+                                            }`}
                                         >
                                             <FaDownload />
                                             Export History
@@ -443,22 +537,34 @@ const Verify = () => {
                             <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* Student Information */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                        <FaUser className="text-blue-600" />
+                                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${
+                                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                    }`}>
+                                        <FaUser className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
                                         Student Information
                                     </h3>
                                     <div className="space-y-3">
                                         <InfoItem label="Full Name" value={list.studentName} />
                                         <InfoItem label="Student ID" value={list.studentId || list.studentID} />
-                                        <InfoItem label="Phone" value={list.phone} icon={<FaPhone />} />
-                                        <InfoItem label="Email" value={list.email} icon={<FaEnvelope />} />
+                                        <InfoItem 
+                                            label="Phone" 
+                                            value={list.phone} 
+                                            icon={<FaPhone className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />} 
+                                        />
+                                        <InfoItem 
+                                            label="Email" 
+                                            value={list.email} 
+                                            icon={<FaEnvelope className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />} 
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Device Information */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                        <FaLaptop className="text-purple-600" />
+                                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${
+                                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                    }`}>
+                                        <FaLaptop className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
                                         Device Information
                                     </h3>
                                     <div className="space-y-3">
@@ -471,34 +577,66 @@ const Verify = () => {
 
                                 {/* Status & Security */}
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                        <FaShieldAlt className="text-green-600" />
+                                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${
+                                        isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                    }`}>
+                                        <FaShieldAlt className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
                                         Status & Security
                                     </h3>
                                     <div className="space-y-3">
-                                        <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                        <div className={`p-3 rounded-lg border ${
+                                            isDarkMode 
+                                                ? `${theme.infoBg} ${theme.infoBorder}` 
+                                                : `${theme.infoBg} ${theme.infoBorder}`
+                                        }`}>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-700">Verification Status</span>
-                                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${(list.verified || list.Verified) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                <span className={theme.textSecondary}>Verification Status</span>
+                                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                                    (list.verified || list.Verified) 
+                                                        ? isDarkMode 
+                                                            ? 'bg-green-900/30 text-green-300' 
+                                                            : 'bg-green-100 text-green-800'
+                                                        : isDarkMode 
+                                                            ? 'bg-red-900/30 text-red-300' 
+                                                            : 'bg-red-100 text-red-800'
+                                                }`}>
                                                     {(list.verified || list.Verified) ? 'Verified' : 'Pending'}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                        <div className={`p-3 rounded-lg border ${
+                                            isDarkMode 
+                                                ? `${theme.infoBg} ${theme.infoBorder}` 
+                                                : `${theme.infoBg} ${theme.infoBorder}`
+                                        }`}>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-700">Antivirus</span>
-                                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${list.antiVirusInstalled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                <span className={theme.textSecondary}>Antivirus</span>
+                                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                                    list.antiVirusInstalled 
+                                                        ? isDarkMode 
+                                                            ? 'bg-green-900/30 text-green-300' 
+                                                            : 'bg-green-100 text-green-800'
+                                                        : isDarkMode 
+                                                            ? 'bg-red-900/30 text-red-300' 
+                                                            : 'bg-red-100 text-red-800'
+                                                }`}>
                                                     {list.antiVirusInstalled ? 'Protected' : 'Unprotected'}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                                        <div className={`p-3 rounded-lg border ${
+                                            isDarkMode 
+                                                ? `${theme.infoBg} ${theme.infoBorder}` 
+                                                : `${theme.infoBg} ${theme.infoBorder}`
+                                        }`}>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-gray-700">Registration Date</span>
-                                                <span className="text-gray-900 font-medium flex items-center gap-1">
-                                                    <FaCalendarAlt className="text-gray-500" />
+                                                <span className={theme.textSecondary}>Registration Date</span>
+                                                <span className={`font-medium flex items-center gap-1 ${
+                                                    isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                                                }`}>
+                                                    <FaCalendarAlt className={isDarkMode ? 'text-gray-500' : 'text-gray-500'} />
                                                     {formatRegistrationDate(list.createdAt)}
                                                 </span>
                                             </div>
@@ -509,25 +647,44 @@ const Verify = () => {
                         </div>
 
                         {/* IN/OUT Tracking Section */}
-                        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+                        <div className={`rounded-2xl border overflow-hidden ${theme.border} ${theme.shadow} ${theme.cardBg}`}>
+                            <div className={`p-6 border-b ${theme.border} ${theme.gradientHeader}`}>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                            <FaHistory className="text-blue-600" />
+                                        <h3 className={`text-xl font-bold flex items-center gap-2 ${
+                                            isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                        }`}>
+                                            <FaHistory className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
                                             Device Tracking History
                                         </h3>
-                                        <p className="text-gray-600 mt-1">
-                                            Track when the laptop was checked IN/OUT. Status: <span className={`font-semibold ${status === 'in' ? 'text-green-600' : 'text-red-600'}`}>{status.toUpperCase()}</span>
+                                        <p className={theme.textSecondary}>
+                                            Track when the laptop was checked IN/OUT. Status: 
+                                            <span className={`font-semibold ml-1 ${
+                                                status === 'in' 
+                                                    ? isDarkMode ? 'text-green-400' : 'text-green-600'
+                                                    : isDarkMode ? 'text-red-400' : 'text-red-600'
+                                            }`}>
+                                                {status.toUpperCase()}
+                                            </span>
                                         </p>
                                     </div>
                                     <div className="mt-2 md:mt-0">
-                                        <div className="text-sm text-gray-600">
-                                            Registered: <span className="font-medium">{formatRegistrationDate(registrationDate)}</span>
+                                        <div className={`text-sm ${theme.textSecondary}`}>
+                                            Registered: 
+                                            <span className={`font-medium ml-1 ${
+                                                isDarkMode ? 'text-gray-300' : 'text-gray-900'
+                                            }`}>
+                                                {formatRegistrationDate(registrationDate)}
+                                            </span>
                                         </div>
                                         {firstIn && (
-                                            <div className="text-sm text-gray-600 mt-1">
-                                                First IN: <span className="font-medium">{formatDateTime(firstIn)}</span>
+                                            <div className={`text-sm mt-1 ${theme.textSecondary}`}>
+                                                First IN: 
+                                                <span className={`font-medium ml-1 ${
+                                                    isDarkMode ? 'text-gray-300' : 'text-gray-900'
+                                                }`}>
+                                                    {formatDateTime(firstIn)}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
@@ -537,44 +694,77 @@ const Verify = () => {
                             <div className="p-6 pb-10">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     {/* IN Status Card */}
-                                    <div className={`p-5 rounded-xl border ${status === 'in' ? 'border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 ring-2 ring-green-200' : 'border-gray-200 bg-gray-50'}`}>
+                                    <div className={`p-5 rounded-xl border ${
+                                        status === 'in' 
+                                            ? isDarkMode 
+                                                ? 'border-green-700 bg-gradient-to-r from-green-900/30 to-emerald-900/30 ring-2 ring-green-800' 
+                                                : 'border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 ring-2 ring-green-200'
+                                            : isDarkMode 
+                                                ? 'border-gray-700 bg-gray-900/30' 
+                                                : 'border-gray-200 bg-gray-50'
+                                    }`}>
                                         <div className="flex items-center justify-between mb-3">
-                                            <h4 className="font-semibold text-gray-800">Mark as IN</h4>
+                                            <h4 className={`font-semibold ${
+                                                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                            }`}>
+                                                Mark as IN
+                                            </h4>
                                             <div className="flex items-center gap-2">
-                                                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                                    isDarkMode 
+                                                        ? 'bg-green-900/30 text-green-300' 
+                                                        : 'bg-green-100 text-green-800'
+                                                }`}>
                                                     IN
                                                 </span>
                                                 {status === 'in' && (
-                                                    <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                        isDarkMode 
+                                                            ? 'bg-green-600 text-white' 
+                                                            : 'bg-green-500 text-white'
+                                                    }`}>
                                                         Current
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 mb-4">
-                                            <div className="w-12 h-12 bg-gradient-to-r from-green-100 to-green-50 rounded-lg flex items-center justify-center">
-                                                <FaClock className="text-green-600 text-xl" />
+                                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                                isDarkMode 
+                                                    ? 'bg-gradient-to-r from-green-900/30 to-green-800/30' 
+                                                    : 'bg-gradient-to-r from-green-100 to-green-50'
+                                            }`}>
+                                                <FaClock className={isDarkMode ? 'text-green-400' : 'text-green-600 text-xl'} />
                                             </div>
                                             <div>
-                                                <div className="text-2xl font-bold text-gray-900">
+                                                <div className={`text-2xl font-bold ${
+                                                    isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                                }`}>
                                                     {lastIn ? formatDateTime(lastIn).split(' ')[1] : '--:--'}
                                                 </div>
-                                                <div className="text-sm text-gray-600">
+                                                <div className={`text-sm ${theme.textSecondary}`}>
                                                     {lastIn ? formatDateTime(lastIn).split(' ')[0] : 'No IN record yet'}
                                                 </div>
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => updatePCStatus('in')}
+                                            onClick={() => setConfirmIn(true)}
                                             disabled={status === 'in'}
-                                            className={`w-full py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow ${status === 'in'
-                                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                                    : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
-                                                }`}
+                                            className={`w-full py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow ${
+                                                status === 'in'
+                                                    ? isDarkMode 
+                                                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                    : isDarkMode 
+                                                        ? 'bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 text-white' 
+                                                        : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white'
+                                            }`}
                                         >
                                             {status === 'in' ? 'Currently IN' : 'Mark as IN'}
                                         </button>
-                                        <p className="text-xs text-gray-500 mt-2 text-center">
+                                        <p className={`text-xs mt-2 text-center ${
+                                            isDarkMode ? 'text-gray-500' : 'text-gray-500'
+                                        }`}>
                                             {status === 'in'
                                                 ? 'Laptop is currently available'
                                                 : 'Mark laptop as returned/available'}
@@ -582,44 +772,77 @@ const Verify = () => {
                                     </div>
 
                                     {/* OUT Status Card */}
-                                    <div className={`p-5 rounded-xl border ${status === 'out' ? 'border-red-300 bg-gradient-to-r from-red-50 to-orange-50 ring-2 ring-red-200' : 'border-gray-200 bg-gray-50'}`}>
+                                    <div className={`p-5 rounded-xl border ${
+                                        status === 'out' 
+                                            ? isDarkMode 
+                                                ? 'border-red-700 bg-gradient-to-r from-red-900/30 to-orange-900/30 ring-2 ring-red-800' 
+                                                : 'border-red-300 bg-gradient-to-r from-red-50 to-orange-50 ring-2 ring-red-200'
+                                            : isDarkMode 
+                                                ? 'border-gray-700 bg-gray-900/30' 
+                                                : 'border-gray-200 bg-gray-50'
+                                    }`}>
                                         <div className="flex items-center justify-between mb-3">
-                                            <h4 className="font-semibold text-gray-800">Mark as OUT</h4>
+                                            <h4 className={`font-semibold ${
+                                                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                            }`}>
+                                                Mark as OUT
+                                            </h4>
                                             <div className="flex items-center gap-2">
-                                                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                                    isDarkMode 
+                                                        ? 'bg-red-900/30 text-red-300' 
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
                                                     OUT
                                                 </span>
                                                 {status === 'out' && (
-                                                    <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                        isDarkMode 
+                                                            ? 'bg-red-600 text-white' 
+                                                            : 'bg-red-500 text-white'
+                                                    }`}>
                                                         Current
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 mb-4">
-                                            <div className="w-12 h-12 bg-gradient-to-r from-red-100 to-red-50 rounded-lg flex items-center justify-center">
-                                                <FaClock className="text-red-600 text-xl" />
+                                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                                isDarkMode 
+                                                    ? 'bg-gradient-to-r from-red-900/30 to-red-800/30' 
+                                                    : 'bg-gradient-to-r from-red-100 to-red-50'
+                                            }`}>
+                                                <FaClock className={isDarkMode ? 'text-red-400' : 'text-red-600 text-xl'} />
                                             </div>
                                             <div>
-                                                <div className="text-2xl font-bold text-gray-900">
+                                                <div className={`text-2xl font-bold ${
+                                                    isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                                }`}>
                                                     {lastOut ? formatDateTime(lastOut).split(' ')[1] : '--:--'}
                                                 </div>
-                                                <div className="text-sm text-gray-600">
+                                                <div className={`text-sm ${theme.textSecondary}`}>
                                                     {lastOut ? formatDateTime(lastOut).split(' ')[0] : 'No OUT record yet'}
                                                 </div>
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => updatePCStatus('out')}
+                                            onClick={() => setConfirm(true)}
                                             disabled={status === 'out'}
-                                            className={`w-full py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow ${status === 'out'
-                                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                                    : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white'
-                                                }`}
+                                            className={`w-full py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow ${
+                                                status === 'out'
+                                                    ? isDarkMode 
+                                                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                                    : isDarkMode 
+                                                        ? 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white' 
+                                                        : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white'
+                                            }`}
                                         >
                                             {status === 'out' ? 'Currently OUT' : 'Mark as OUT'}
                                         </button>
-                                        <p className="text-xs text-gray-500 mt-2 text-center">
+                                        <p className={`text-xs mt-2 text-center ${
+                                            isDarkMode ? 'text-gray-500' : 'text-gray-500'
+                                        }`}>
                                             {status === 'out'
                                                 ? 'Laptop is currently checked out'
                                                 : 'Mark laptop as checked out/taken'}
@@ -629,19 +852,35 @@ const Verify = () => {
 
                                 {/* Registration Info Card */}
                                 {registrationDate && (
-                                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                                    <div className={`mb-6 p-4 rounded-xl border ${
+                                        isDarkMode 
+                                            ? `${theme.infoBg} ${theme.infoBorder}` 
+                                            : `${theme.infoBg} ${theme.infoBorder}`
+                                    }`}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <FaCalendarAlt className="text-blue-600" />
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                                isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'
+                                            }`}>
+                                                <FaCalendarAlt className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
                                             </div>
                                             <div>
-                                                <h4 className="font-semibold text-blue-800">Registration Information</h4>
-                                                <p className="text-sm text-blue-600">
-                                                    This device was registered on <span className="font-bold">{formatRegistrationDate(registrationDate)}</span>
+                                                <h4 className={`font-semibold ${
+                                                    isDarkMode ? 'text-blue-300' : 'text-blue-800'
+                                                }`}>
+                                                    Registration Information
+                                                </h4>
+                                                <p className={`text-sm ${
+                                                    isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                                                }`}>
+                                                    This device was registered on <span className="font-bold">
+                                                        {formatRegistrationDate(registrationDate)}
+                                                    </span>
                                                     {firstIn && ` and automatically marked as IN at that time.`}
                                                 </p>
-                                                <p className="text-xs text-blue-500 mt-1">
-                                                   Student Name: {list.studentName}  |  Student ID: {list.studentId}  
+                                                <p className={`text-xs mt-1 ${
+                                                    isDarkMode ? 'text-blue-500' : 'text-blue-500'
+                                                }`}>
+                                                    Student Name: {list.studentName}  |  Student ID: {list.studentId}
                                                 </p>
                                             </div>
                                         </div>
@@ -650,74 +889,129 @@ const Verify = () => {
 
                                 {/* History Table */}
                                 {pcStatusHistory.length > 0 && (
-                                    <div className="border-t border-gray-200 pb-6 pt-6 relative">
+                                    <div className={`border-t pb-6 pt-6 relative ${
+                                        isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                                    }`}>
                                         <div className="flex justify-between items-center mb-4">
-                                            <h4 className="font-semibold text-gray-800">Status History</h4>
-                                            <div className="text-sm text-gray-600">
+                                            <h4 className={`font-semibold ${
+                                                isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                            }`}>
+                                                Status History
+                                            </h4>
+                                            <div className={`text-sm ${theme.textSecondary}`}>
                                                 Total entries: {pcStatusHistory.length}
                                             </div>
                                         </div>
-                                        <div className="overflow-hidden rounded-lg border border-gray-200">
-                                            <table className="min-w-full divide-y divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                        <div className="overflow-hidden rounded-lg border">
+                                            <table className="min-w-full divide-y">
+                                                <thead className={isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}>
                                                     <tr>
-                                                        
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action By</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time Ago</th>
+                                                        <th className={`px-4 py-3 text-left text-xs font-medium uppercase ${
+                                                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                        }`}>
+                                                            Status
+                                                        </th>
+                                                        <th className={`px-4 py-3 text-left text-xs font-medium uppercase ${
+                                                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                        }`}>
+                                                            Timestamp
+                                                        </th>
+                                                        <th className={`px-4 py-3 text-left text-xs font-medium uppercase ${
+                                                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                        }`}>
+                                                            Action By
+                                                        </th>
+                                                        <th className={`px-4 py-3 text-left text-xs font-medium uppercase ${
+                                                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                                        }`}>
+                                                            Time Ago
+                                                        </th>
                                                     </tr>
                                                 </thead>
 
                                                 {more ? (
-                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                    <tbody className={isDarkMode ? 'bg-gray-800/50 divide-gray-700' : 'bg-white divide-gray-200'}>
                                                         {[...pcStatusHistory].reverse().map((entry, index) => (
-                                                            <tr key={index} className="hover:bg-gray-50">
-                                                             
+                                                            <tr key={index} className={isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'}>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${entry.status === 'in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                                        entry.status === 'in' 
+                                                                            ? isDarkMode 
+                                                                                ? 'bg-green-900/30 text-green-300' 
+                                                                                : 'bg-green-100 text-green-800'
+                                                                            : isDarkMode 
+                                                                                ? 'bg-red-900/30 text-red-300' 
+                                                                                : 'bg-red-100 text-red-800'
+                                                                    }`}>
                                                                         {entry.status.toUpperCase()}
                                                                     </span>
                                                                     {index === pcStatusHistory.length - 1 && entry.note === 'Initial registration - Device marked as IN' && (
-                                                                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                                                        <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                                                            isDarkMode 
+                                                                                ? 'bg-blue-900/30 text-blue-300' 
+                                                                                : 'bg-blue-100 text-blue-800'
+                                                                        }`}>
                                                                             Initial
                                                                         </span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-300' : 'text-gray-900'
+                                                                }`}>
                                                                     {formatDateTime(entry.timestamp)}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                                                }`}>
                                                                     {entry.actionBy}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-500">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-500' : 'text-gray-500'
+                                                                }`}>
                                                                     {getTimeAgo(entry.timestamp)}
                                                                 </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
                                                 ) : (
-                                                    <tbody className="bg-white divide-y divide-gray-200">
+                                                    <tbody className={isDarkMode ? 'bg-gray-800/50 divide-gray-700' : 'bg-white divide-gray-200'}>
                                                         {[...pcStatusHistory].slice(-5).reverse().map((entry, index) => (
-                                                            <tr key={index} className="hover:bg-gray-50">
-                                                              
+                                                            <tr key={index} className={isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'}>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${entry.status === 'in' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                                        entry.status === 'in' 
+                                                                            ? isDarkMode 
+                                                                                ? 'bg-green-900/30 text-green-300' 
+                                                                                : 'bg-green-100 text-green-800'
+                                                                            : isDarkMode 
+                                                                                ? 'bg-red-900/30 text-red-300' 
+                                                                                : 'bg-red-100 text-red-800'
+                                                                    }`}>
                                                                         {entry.status.toUpperCase()}
                                                                     </span>
                                                                     {index === 0 && entry.note === 'Initial registration - Device marked as IN' && (
-                                                                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                                                        <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                                                            isDarkMode 
+                                                                                ? 'bg-blue-900/30 text-blue-300' 
+                                                                                : 'bg-blue-100 text-blue-800'
+                                                                        }`}>
                                                                             Initial
                                                                         </span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-300' : 'text-gray-900'
+                                                                }`}>
                                                                     {formatDateTime(entry.timestamp)}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                                                }`}>
                                                                     {entry.actionBy}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-500">
+                                                                <td className={`px-4 py-3 text-sm ${
+                                                                    isDarkMode ? 'text-gray-500' : 'text-gray-500'
+                                                                }`}>
                                                                     {getTimeAgo(entry.timestamp)}
                                                                 </td>
                                                             </tr>
@@ -731,14 +1025,22 @@ const Verify = () => {
                                                 {more ? (
                                                     <button
                                                         onClick={() => { setMore(false) }}
-                                                        className='bg-blue-700 cursor-pointer transition hover:bg-blue-800 text-white py-2 px-6 rounded-lg font-medium'
+                                                        className={`py-2 px-6 rounded-lg font-medium transition-colors ${
+                                                            isDarkMode 
+                                                                ? 'bg-blue-700 hover:bg-blue-600 text-white' 
+                                                                : 'bg-blue-700 hover:bg-blue-800 text-white'
+                                                        }`}
                                                     >
                                                         Show Less
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => { setMore(true) }}
-                                                        className='cursor-pointer hover:bg-blue-800 bg-blue-700 text-white py-2 px-6 rounded-lg font-medium'
+                                                        className={`py-2 px-6 rounded-lg font-medium transition-colors ${
+                                                            isDarkMode 
+                                                                ? 'bg-blue-700 hover:bg-blue-600 text-white' 
+                                                                : 'bg-blue-700 hover:bg-blue-800 text-white'
+                                                        }`}
                                                     >
                                                         Show All History ({pcStatusHistory.length} entries)
                                                     </button>
@@ -750,25 +1052,44 @@ const Verify = () => {
 
                                 {/* Empty History State */}
                                 {pcStatusHistory.length === 0 && (
-                                    <div className="text-center py-8 border-t border-gray-200">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <FaHistory className="w-8 h-8 text-gray-400" />
+                                    <div className={`text-center py-8 border-t ${
+                                        isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                                    }`}>
+                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                                            isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+                                        }`}>
+                                            <FaHistory className={`w-8 h-8 ${
+                                                isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                                            }`} />
                                         </div>
-                                        <h4 className="font-semibold text-gray-800 mb-2">No Status History Yet</h4>
-                                        <p className="text-gray-600 mb-4">
-                                            This device was registered on <span className="font-semibold">{formatRegistrationDate(registrationDate)}</span>.
+                                        <h4 className={`font-semibold mb-2 ${
+                                            isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                                        }`}>
+                                            No Status History Yet
+                                        </h4>
+                                        <p className={`mb-4 ${theme.textSecondary}`}>
+                                            This device was registered on 
+                                            <span className="font-semibold"> {formatRegistrationDate(registrationDate)}</span>.
                                             Mark the laptop as IN or OUT to start tracking.
                                         </p>
                                         <div className="flex justify-center gap-4">
                                             <button
                                                 onClick={() => updatePCStatus('in')}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
+                                                className={`px-4 py-2 rounded-lg font-medium ${
+                                                    isDarkMode 
+                                                        ? 'bg-green-600 hover:bg-green-500 text-white' 
+                                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                                }`}
                                             >
                                                 Mark as IN
                                             </button>
                                             <button
                                                 onClick={() => updatePCStatus('out')}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700"
+                                                className={`px-4 py-2 rounded-lg font-medium ${
+                                                    isDarkMode 
+                                                        ? 'bg-red-600 hover:bg-red-500 text-white' 
+                                                        : 'bg-red-600 hover:bg-red-700 text-white'
+                                                }`}
                                             >
                                                 Mark as OUT
                                             </button>
@@ -779,20 +1100,28 @@ const Verify = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+                        <div className={`rounded-2xl border p-6 ${theme.border} ${theme.shadow} ${theme.cardBg}`}>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button
                                     onClick={() => navigate('/list')}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-800 font-semibold rounded-xl transition-all shadow-sm hover:shadow"
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 font-semibold rounded-xl transition-all shadow-sm hover:shadow ${
+                                        isDarkMode 
+                                            ? 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-gray-300' 
+                                            : 'bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-800'
+                                    }`}
                                 >
                                     <FaArrowLeft />
                                     Back to List
                                 </button>
 
                                 <button
-                                    onClick={()=>setShowDel(true)}
+                                    onClick={() => setShowDel(true)}
                                     disabled={isLoading}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3.5 font-semibold rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        isDarkMode 
+                                            ? 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white' 
+                                            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white'
+                                    }`}
                                 >
                                     <FaTrash />
                                     Delete Registration
@@ -802,11 +1131,17 @@ const Verify = () => {
                                     <button
                                         onClick={handleVerify}
                                         disabled={isLoading}
-                                        className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 font-semibold rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            isDarkMode 
+                                                ? 'bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white' 
+                                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+                                        }`}
                                     >
                                         {isLoading ? (
                                             <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <div className={`w-5 h-5 border-2 border-t-transparent rounded-full animate-spin ${
+                                                    isDarkMode ? 'border-white' : 'border-white'
+                                                }`}></div>
                                                 Verifying...
                                             </>
                                         ) : (
@@ -819,84 +1154,266 @@ const Verify = () => {
                                 ) : (
                                     <button
                                         disabled
-                                        className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl opacity-70 cursor-not-allowed"
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 font-semibold rounded-xl opacity-70 cursor-not-allowed ${
+                                            isDarkMode 
+                                                ? 'bg-gradient-to-r from-green-700 to-emerald-700 text-white' 
+                                                : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
+                                        }`}
                                     >
                                         <FaCheckCircle />
                                         Already Verified
                                     </button>
                                 )}
                             </div>
-
-                            {showDel && (
-                                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-1000 ">
-                                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <FaExclamation className="text-white text-xl" />
-                                        </div>
-                                        <h3 className="text-xl font-bold text-center mb-2">Do you want to Delete?</h3>
-                                        <p className="text-gray-600 text-center mb-4">
-                                            This will permanently delete {list.studentName}'s laptop registration.
-                                        </p>
-
-                                        <div className="flex gap-3">
-                                            <button
-                                                onClick={() => setShowDel(false)}
-                                                className="flex-1 border border-gray-300 rounded-xl px-4 py-3 font-medium hover:bg-gray-50 transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(list.id, e);
-                                                    setShowDel(false)
-                                                }}
-                                                className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl px-4 py-3 font-medium hover:from-red-700 hover:to-red-600 transition-all shadow-sm"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow-xl p-8 text-center border border-yellow-300 max-w-2xl mx-auto">
-                        <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`rounded-2xl p-8 text-center border max-w-2xl mx-auto ${
+                        isDarkMode 
+                            ? `${theme.cardBg} ${theme.border} border-yellow-700` 
+                            : 'bg-white border-yellow-300 shadow-xl'
+                    }`}>
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                            isDarkMode 
+                                ? 'bg-gradient-to-r from-yellow-900/30 to-yellow-800/30' 
+                                : 'bg-gradient-to-r from-yellow-100 to-yellow-50'
+                        }`}>
+                            <svg className={`w-8 h-8 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-yellow-700 mb-2">
+                        <h2 className={`text-2xl font-bold mb-2 ${
+                            isDarkMode ? 'text-yellow-400' : 'text-yellow-700'
+                        }`}>
                             Laptop Not Found
                         </h2>
-                        <p className="text-yellow-600 mb-6">
-                            No laptop entry found with ID <strong className="bg-yellow-100 px-2 py-1 rounded">{id}</strong>
+                        <p className={`mb-6 ${
+                            isDarkMode ? 'text-yellow-300' : 'text-yellow-600'
+                        }`}>
+                            No laptop entry found with ID 
+                            <strong className={`px-2 py-1 rounded ml-1 ${
+                                isDarkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'
+                            }`}>
+                                {id}
+                            </strong>
                         </p>
                         <button
                             onClick={() => navigate('/list')}
-                            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg"
+                            className={`w-full py-3.5 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg ${
+                                isDarkMode 
+                                    ? 'bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white' 
+                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+                            }`}
                         >
                             Back to List
                         </button>
+                    </div>
+                )}
+
+                {/* Confirmation Modal for IN */}
+                {confirmIn && (
+                    <div className="fixed inset-0 flex items-center justify-center p-4 z-1000">
+                        <div 
+                            className={`absolute inset-0 ${
+                                isDarkMode ? 'bg-black/70' : 'bg-black/40'
+                            } backdrop-blur-sm`}
+                            onClick={() => setConfirmIn(false)}
+                        />
+                        <div className={`relative rounded-xl shadow-xl max-w-sm w-full border overflow-hidden ${
+                            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                        }`}>
+                            <div className={`h-2 ${
+                                isDarkMode 
+                                    ? 'bg-gradient-to-r from-green-600 to-green-500' 
+                                    : 'bg-gradient-to-r from-green-500 to-orange-500'
+                            }`}></div>
+                            <div className="p-6">
+                                <div className="flex justify-center mb-4">
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                                        isDarkMode 
+                                            ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30' 
+                                            : 'bg-gradient-to-br from-red-50 to-orange-50'
+                                    }`}>
+                                        <svg className={`w-8 h-8 ${isDarkMode ? 'text-green-400' : 'text-green-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 className={`text-lg font-semibold text-center mb-2 ${
+                                    isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>
+                                    Update Status
+                                </h3>
+                                <p className={`text-center mb-6 ${
+                                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                    Change status to 
+                                    <span className={`font-medium ml-1 ${
+                                        isDarkMode ? 'text-green-300' : 'text-green-600'
+                                    }`}>
+                                        "In"
+                                    </span>?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setConfirmIn(false)}
+                                        className={`flex-1 py-2.5 px-4 font-medium rounded-lg transition-colors duration-150 ${
+                                            isDarkMode 
+                                                ? 'text-gray-300 bg-gray-700 hover:bg-gray-600' 
+                                                : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Go Back
+                                    </button>
+                                    <button
+                                        onClick={() => { updatePCStatus('in'); setConfirmIn(false); }}
+                                        className={`flex-1 py-2.5 px-4 text-white font-medium rounded-lg transition-colors duration-150 shadow-sm hover:shadow ${
+                                            isDarkMode 
+                                                ? 'bg-green-600 hover:bg-green-500' 
+                                                : 'bg-green-500 hover:bg-green-600'
+                                        }`}
+                                    >
+                                        Yes, Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Confirmation Modal for OUT */}
+                {confirm && (
+                    <div className="fixed inset-0 flex items-center justify-center p-4 z-1000">
+                        <div 
+                            className={`absolute inset-0 ${
+                                isDarkMode ? 'bg-black/70' : 'bg-black/40'
+                            } backdrop-blur-sm`}
+                            onClick={() => setConfirm(false)}
+                        />
+                        <div className={`relative rounded-xl shadow-xl max-w-sm w-full border overflow-hidden ${
+                            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                        }`}>
+                            <div className={`h-2 ${
+                                isDarkMode 
+                                    ? 'bg-gradient-to-r from-red-600 to-red-500' 
+                                    : 'bg-gradient-to-r from-red-500 to-orange-500'
+                            }`}></div>
+                            <div className="p-6">
+                                <div className="flex justify-center mb-4">
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                                        isDarkMode 
+                                            ? 'bg-gradient-to-br from-red-900/30 to-orange-900/30' 
+                                            : 'bg-gradient-to-br from-red-50 to-orange-50'
+                                    }`}>
+                                        <svg className={`w-8 h-8 ${isDarkMode ? 'text-red-400' : 'text-red-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 className={`text-lg font-semibold text-center mb-2 ${
+                                    isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>
+                                    Update Status
+                                </h3>
+                                <p className={`text-center mb-6 ${
+                                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                    Change status to 
+                                    <span className={`font-medium ml-1 ${
+                                        isDarkMode ? 'text-red-300' : 'text-red-600'
+                                    }`}>
+                                        "Out"
+                                    </span>?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setConfirm(false)}
+                                        className={`flex-1 py-2.5 px-4 font-medium rounded-lg transition-colors duration-150 ${
+                                            isDarkMode 
+                                                ? 'text-gray-300 bg-gray-700 hover:bg-gray-600' 
+                                                : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Go Back
+                                    </button>
+                                    <button
+                                        onClick={() => { updatePCStatus('out'); setConfirm(false); }}
+                                        className={`flex-1 py-2.5 px-4 text-white font-medium rounded-lg transition-colors duration-150 shadow-sm hover:shadow ${
+                                            isDarkMode 
+                                                ? 'bg-red-600 hover:bg-red-500' 
+                                                : 'bg-red-500 hover:bg-red-600'
+                                        }`}
+                                    >
+                                        Yes, Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Delete Confirmation Modal */}
+                {showDel && (
+                    <div className="fixed inset-0 flex items-center justify-center p-4 z-1000">
+                        <div 
+                            className={`absolute inset-0 ${
+                                isDarkMode ? 'bg-black/70' : 'bg-black/40'
+                            } backdrop-blur-sm`}
+                            onClick={() => setShowDel(false)}
+                        />
+                        <div className={`relative rounded-2xl p-6 max-w-sm w-full shadow-2xl border ${
+                            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+                        }`}>
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                                isDarkMode 
+                                    ? 'bg-gradient-to-br from-amber-700 to-amber-800' 
+                                    : 'bg-gradient-to-br from-amber-500 to-amber-600'
+                            }`}>
+                                <FaExclamation className="text-white text-xl" />
+                            </div>
+                            <h3 className={`text-xl font-bold text-center mb-2 ${
+                                isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                            }`}>
+                                Do you want to Delete?
+                            </h3>
+                            <p className={`text-center mb-4 ${
+                                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                                This will permanently delete {list?.studentName}'s laptop registration.
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowDel(false)}
+                                    className={`flex-1 border rounded-xl px-4 py-3 font-medium transition-colors ${
+                                        isDarkMode 
+                                            ? 'border-gray-600 hover:bg-gray-700 text-gray-300' 
+                                            : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                                    }`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        handleDelete();
+                                        setShowDel(false);
+                                    }}
+                                    className={`flex-1 rounded-xl px-4 py-3 font-medium transition-all shadow-sm hover:shadow ${
+                                        isDarkMode 
+                                            ? 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white' 
+                                            : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white'
+                                    }`}
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
         </div>
     );
 };
-
-// Helper component for info items
-const InfoItem = ({ label, value, icon, highlight = false, fontMono = false }) => (
-    <div className={`p-3 rounded-lg border ${highlight ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
-        <div className="text-xs text-gray-500 font-medium mb-1">{label}</div>
-        <div className={`flex items-center gap-2 ${fontMono ? 'font-mono' : ''}`}>
-            {icon}
-            <span className="font-semibold text-gray-900 truncate">{value || 'N/A'}</span>
-        </div>
-    </div>
-);
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp) => {
