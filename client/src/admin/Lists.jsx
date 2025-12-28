@@ -529,7 +529,7 @@ const Lists = () => {
         <div className="w-full mx-auto py-1 px-4">
           <div className={`border overflow-hidden ${theme.border} ${theme.shadow} ${theme.cardBg}`}>
             {/* Fixed Table Header */}
-            <div className={`sticky top-0 z-30 border-b ${theme.border} ${theme.tableHeaderBg}`}>
+            <div className={`sticky top-0 z-10 border-b ${theme.border} ${theme.tableHeaderBg}`}>
               <div className={`grid grid-cols-10 gap-4 px-6 py-4 text-xs font-semibold uppercase tracking-wider ${theme.tableHeaderText}`}>
                 <div className="flex items-center gap-2">
                   <FaUser className="w-3 h-3" />
@@ -573,9 +573,9 @@ const Lists = () => {
             {/* Scrollable Table Body */}
             <div
               ref={tableContainerRef}
-              className="overflow-y-auto max-h-[calc(100vh-280px)]"
+              className="overflow-y-auto max-h-[calc(100vh-270px)]"
             >
-              <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'} min-w-full`}>
+              <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'} min-w-full `}>
                 {filteredLists.map(list => {
                   const normalizedList = normalizeDeviceData(list);
                   const isPcOut = pcStatus[list.id] === 'out';

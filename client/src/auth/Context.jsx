@@ -31,8 +31,9 @@ export const AppProvider = ({children}) => {
         password: ''
     });
 
-      const [showDel, setShowDel] = useState(false)
-       const [isDarkMode, setIsDarkMode] = useState(true) 
+    const [showDel, setShowDel] = useState(false)
+    const [isDarkMode, setIsDarkMode] = useState(true) 
+    const [isLocked, setIsLocked] = useState(false); // This is defined
     
     // ✅ Logout function
     const logout = () => {
@@ -395,8 +396,22 @@ export const AppProvider = ({children}) => {
         console.log("🚀 Initializing app...");
         fetchLaptopsFromBackend();
     }, []);
+   
+    const lockApp = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('is_locked', 'true');
+            window.dispatchEvent(new Event('storage'));
+        }
+    };
+
+    // ✅ Add this function to unlock the app
+    const unlockApp = () => {
+        setIsLocked(false);
+    };
 
     const value = {
+        lockApp,
+        unlockApp, // Add this
         stu, 
         user, 
         setUser, 
@@ -430,7 +445,10 @@ export const AppProvider = ({children}) => {
         transformToBackendFormat,
         transformToFrontendFormat,
         showDel, setShowDel,
-        isDarkMode, setIsDarkMode
+        isDarkMode, setIsDarkMode,
+        isLocked, // Make sure this is included
+        setIsLocked, // Make sure this is included
+        isAuthenticated: !!user || !!localStorage.getItem('token')
     };
     
     return (

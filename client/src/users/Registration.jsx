@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { FaArrowCircleLeft, FaCheckCircle, FaList, FaLaptop, FaUser, FaShieldAlt, FaInfoCircle, FaTimes, FaSpinner, FaSun, FaMoon } from 'react-icons/fa';
+import NavBar from '../admin/NavBar';
 
 const Registration = () => {
     const operatingSystems = ['Windows', 'Linux', 'MacOS', 'Other'];
@@ -266,8 +267,10 @@ const Registration = () => {
     );
 
     return (
-        <div className={`min-h-screen pt-18 pb-10 transition-colors duration-300 ${theme.bg}`}>
+        <div className={`min-h-screen pt-23 pb-10 transition-colors duration-300 ${theme.bg}`}>
+<NavBar/>
             <ThemeToggle />
+
 
             {/* Success Overlay */}
             {showSuccess && (
