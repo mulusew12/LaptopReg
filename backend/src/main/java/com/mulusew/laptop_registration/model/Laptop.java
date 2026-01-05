@@ -3,12 +3,14 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "laptops")
 public class Laptop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
     // Student Information
     @Column(name = "student_name", nullable = false)
     private String studentName;
@@ -38,9 +40,9 @@ public class Laptop {
     @Column(name = "anti_virus_installed")
     private Boolean antiVirusInstalled = false;
     
-    // Status
+    // Status - CHANGED FROM Boolean TO boolean
     @Column(name = "verified")
-    private Boolean verified = false;
+    private boolean verified = false;
     
     // Timestamps
     @CreationTimestamp
@@ -61,7 +63,7 @@ public class Laptop {
         this.macAddress = macAddress;
     }
     
-    // MANUALLY ADDED GETTERS AND SETTERS (Because Lombok isn't working)
+    // MANUALLY ADDED GETTERS AND SETTERS
     
     // Getters
     public Long getId() { return id; }
@@ -74,7 +76,12 @@ public class Laptop {
     public String getOperatingSystem() { return operatingSystem; }
     public String getLaptopBrand() { return laptopBrand; }
     public Boolean getAntiVirusInstalled() { return antiVirusInstalled; }
+    
+    // CHANGED FROM Boolean TO boolean
+    public boolean isVerified() { return verified; }
+    // Also keep getVerified() for compatibility
     public Boolean getVerified() { return verified; }
+    
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     
@@ -89,7 +96,14 @@ public class Laptop {
     public void setOperatingSystem(String operatingSystem) { this.operatingSystem = operatingSystem; }
     public void setLaptopBrand(String laptopBrand) { this.laptopBrand = laptopBrand; }
     public void setAntiVirusInstalled(Boolean antiVirusInstalled) { this.antiVirusInstalled = antiVirusInstalled; }
-    public void setVerified(Boolean verified) { this.verified = verified; }
+    
+    // CHANGED FROM Boolean TO boolean
+    public void setVerified(boolean verified) { this.verified = verified; }
+    // Also add setter for Boolean wrapper for compatibility
+    public void setVerified(Boolean verified) { 
+        this.verified = verified != null ? verified : false; 
+    }
+    
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

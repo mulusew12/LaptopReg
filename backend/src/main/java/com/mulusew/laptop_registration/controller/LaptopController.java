@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/laptops")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://laptop-reg.vercel.app/"})
 public class LaptopController {
     
     // MANUAL LOGGER
