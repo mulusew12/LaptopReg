@@ -280,57 +280,65 @@ const Lists = () => {
     setEditForm({});
   };
 
-  const saveEditing = async (id, e) => {
-    e.stopPropagation();
+ const saveEditing = async (id, e) => {
+  e.stopPropagation();
 
-    try {
-      // Validate required fields
-      if (!editForm.studentName?.trim()) {
-        showToast('Student name is required', 'error');
-        return;
-      }
-
-      if (!editForm.studentId?.trim()) {
-        showToast('Student ID is required', 'error');
-        return;
-      }
-
-      if (!editForm.serialNumber?.trim()) {
-        showToast('Serial number is required', 'error');
-        return;
-      }
-
-      // Prepare data exactly as backend expects
-      const formDataToSend = {
-        studentName: editForm.studentName.trim(),
-        studentId: editForm.studentId.trim(),
-        serialNumber: editForm.serialNumber.trim(),
-        laptopBrand: editForm.laptopBrand,
-        operatingSystem: editForm.operatingSystem,
-        phone: editForm.phone?.trim() || '',
-        antiVirusInstalled: editForm.antiVirusInstalled === true || editForm.antiVirusInstalled === 'true',
-        verified: editForm.verified === true || editForm.verified === 'true'
-      };
-
-      // Call update function from context
-      const success = await updateDevice(id, formDataToSend);
-
-      if (success) {
-        setEditingId(null);
-        setEditForm({});
-
-        // Refresh data after a short delay
-        setTimeout(() => {
-          if (fetchLaptopsFromBackend) {
-            fetchLaptopsFromBackend();
-          }
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('❌ Error in saveEditing:', error);
-      showToast('An error occurred while updating the device', 'error');
+  try {
+    // Validate required fields
+    if (!editForm.studentName?.trim()) {
+      showToast('Student name is required', 'error');
+      return;
     }
-  };
+
+    if (!editForm.studentId?.trim()) {
+      showToast('Student ID is required', 'error');
+      return;
+    }
+
+    if (!editForm.serialNumber?.trim()) {
+      showToast('Serial number is required', 'error');
+      return;
+    }
+
+    // Get the original device to preserve missing fields
+    const originalDevice = lists.find(l => l.id === id);
+    
+    // Prepare data exactly as backend expects
+    const formDataToSend = {
+      studentName: editForm.studentName.trim(),
+      studentId: editForm.studentId.trim(),
+      serialNumber: editForm.serialNumber.trim(),
+      laptopBrand: editForm.laptopBrand || originalDevice?.laptopBrand || "Unknown",
+      operatingSystem: editForm.operatingSystem || originalDevice?.operatingSystem || "Unknown",
+      phone: editForm.phone?.trim() || originalDevice?.phone || "",
+      email: originalDevice?.email || "", // Preserve email
+      macAddress: originalDevice?.macAddress || "", // Preserve macAddress
+      antiVirusInstalled: editForm.antiVirusInstalled === true || editForm.antiVirusInstalled === 'true',
+      verified: editForm.verified === true || editForm.verified === 'true' // Ensure boolean
+    };
+
+    console.log("📤 Sending update data:", formDataToSend);
+    
+    // Call update function from context
+    const success = await updateDevice(id, formDataToSend);
+
+    if (success) {
+      setEditingId(null);
+      setEditForm({});
+    
+      
+      // Refresh data
+      setTimeout(() => {
+        if (fetchLaptopsFromBackend) {
+          fetchLaptopsFromBackend();
+        }
+      }, 500);
+    }
+  } catch (error) {
+    console.error('❌ Error in saveEditing:', error);
+    showToast('An error occurred while updating the device', 'error');
+  }
+};
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
@@ -576,13 +584,12 @@ const Lists = () => {
               className="overflow-y-auto max-h-[calc(100vh-270px)]"
             >
               <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'} min-w-full `}>
-                {filteredLists.map(list => {
+                {filteredLists.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(list => {
                   const normalizedList = normalizeDeviceData(list);
                   const isPcOut = pcStatus[list.id] === 'out';
                   const isEditing = editingId === list.id;
                   const studentId = getStudentId(list);
                   const verified = isVerified(list);
-
                   return (
                     <div
                       key={list.id}

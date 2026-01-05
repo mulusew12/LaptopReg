@@ -13,32 +13,66 @@ const LockScreen = ({ onUnlock }) => {
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
+  // Load attempts from localStorage on mount
   useEffect(() => {
+    const savedAttempts = localStorage.getItem('lockAttempts');
+    const lockUntil = localStorage.getItem('lockUntil');
+    
+    if (savedAttempts) {
+      setAttempts(parseInt(savedAttempts, 10));
+    }
+    
+    if (lockUntil) {
+      const lockTime = parseInt(lockUntil, 10);
+      const now = Date.now();
+      if (lockTime > now) {
+        const remainingSeconds = Math.ceil((lockTime - now) / 1000);
+        setTimeLeft(remainingSeconds);
+      } else {
+        // Clear expired lock
+        localStorage.removeItem('lockAttempts');
+        localStorage.removeItem('lockUntil');
+        setAttempts(0);
+      }
+    }
+    
     inputRef.current?.focus();
   }, []);
 
+  // Handle lockout timer
   useEffect(() => {
-    if (attempts >= 3) {
-      setTimeLeft(30);
-      const timer = setInterval(() => {
+    let timer;
+    
+    if (timeLeft > 0) {
+      timer = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
             clearInterval(timer);
+            // Clear lock state when timer expires
+            localStorage.removeItem('lockAttempts');
+            localStorage.removeItem('lockUntil');
+            setAttempts(0);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-
-      return () => clearInterval(timer);
     }
-  }, [attempts]);
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [timeLeft]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (timeLeft > 0) {
-      toast.error(`Please wait ${timeLeft} seconds before trying again`);
+    // Check if user is locked out
+    const lockUntil = localStorage.getItem('lockUntil');
+    if (lockUntil && Date.now() < parseInt(lockUntil, 10)) {
+      const remainingSeconds = Math.ceil((parseInt(lockUntil, 10) - Date.now()) / 1000);
+      setTimeLeft(remainingSeconds);
+      toast.error(`Account locked. Please wait ${remainingSeconds} seconds`);
       return;
     }
 
@@ -49,29 +83,52 @@ const LockScreen = ({ onUnlock }) => {
 
     setIsLoading(true);
 
+    // Simulate password check with delay
     setTimeout(() => {
       const savedPassword = localStorage.getItem('userPassword');
       
       if (password === savedPassword) {
-        toast.success('Access granted!');
-        setPassword('');
+        // Reset attempts on successful unlock
         setAttempts(0);
+        setPassword('');
+        localStorage.removeItem('lockAttempts');
+        localStorage.removeItem('lockUntil');
+        toast.success('Access granted!');
+        
         if (onUnlock) {
           onUnlock();
         }
       } else {
-        setAttempts(prev => prev + 1);
+        // Increment attempts for ANY wrong password
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        localStorage.setItem('lockAttempts', newAttempts.toString());
+        
+        // Trigger shake animation
         setShake(true);
         setTimeout(() => setShake(false), 500);
         
-        if (attempts + 1 >= 3) {
-          toast.error('Too many attempts. Account locked for 30 seconds.');
+        // Check if should lock account
+        if (newAttempts >= 3) {
+          const lockDuration = 30 * 1000; // 30 seconds in milliseconds
+          const lockUntilTime = Date.now() + lockDuration;
+          
+          localStorage.setItem('lockUntil', lockUntilTime.toString());
+          setTimeLeft(30);
+          
+          toast.error('Too many failed attempts. Account locked for 30 seconds.');
         } else {
-          toast.error(`Incorrect password. ${3 - (attempts + 1)} attempts left`);
+          toast.error(`Incorrect password. ${3 - newAttempts} attempts left`);
         }
       }
       setIsLoading(false);
     }, 500);
+  };
+
+  // Simple password change handler - does NOT reset attempts
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    // Don't reset attempts when typing - attempts only reset on successful login
   };
 
   const handleForgotPassword = () => {
@@ -79,6 +136,8 @@ const LockScreen = ({ onUnlock }) => {
     localStorage.removeItem('active_session');
     localStorage.removeItem('last_activity_time');
     localStorage.removeItem('just_setup_password');
+    localStorage.removeItem('lockAttempts');
+    localStorage.removeItem('lockUntil');
     
     // Set a flag to indicate we're coming from forgot password
     localStorage.setItem('from_forgot_password', 'true');
@@ -127,10 +186,7 @@ const LockScreen = ({ onUnlock }) => {
                 ref={inputRef}
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (timeLeft === 0) setAttempts(0);
-                }}
+                onChange={handlePasswordChange}
                 className={`w-full pl-14 pr-14 py-4 bg-white/10 border-2 ${
                   shake ? 'border-red-500 animate-shake' : 'border-white/20 hover:border-purple-400/50'
                 } rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl transition-all ${
