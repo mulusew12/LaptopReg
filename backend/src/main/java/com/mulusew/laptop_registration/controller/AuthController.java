@@ -26,7 +26,7 @@ public class AuthController {
     
     @Value("${admin.password}")
     private String adminPassword;
-    
+
     // ADD THIS METHOD TO VERIFY CONTROLLER IS LOADED
     @PostConstruct
     public void init() {

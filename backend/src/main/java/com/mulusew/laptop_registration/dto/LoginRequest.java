@@ -10,6 +10,7 @@ public class LoginRequest {
     
     @JsonProperty("password")  // Explicitly map JSON field
     private String password;
+    
 
     // Add constructors
     public LoginRequest() {}  // Required by Jackson

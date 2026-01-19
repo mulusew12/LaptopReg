@@ -160,7 +160,9 @@ public class LaptopController {
         
         duplicates.put("macAddressExists", 
             laptopRepository.findByMacAddress(laptop.getMacAddress()).isPresent());
-        
+    
         return ResponseEntity.ok(duplicates);
     }
 }
+
+
