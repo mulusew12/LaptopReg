@@ -155,13 +155,15 @@ const Registration = () => {
                 const response = await axios.post('/api/laptops/register', laptopData);
                 
                 console.log('Laptop registered successfully:', response.data);
-                toast.success('Registered successfully', {
+               toast.success('Registered successfully', {
                     style: {
                         background: isDarkMode ? '#1f2937' : '#fff',
                         color: isDarkMode ? '#fff' : '#000',
                         border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
                     },
                 });
+
+            
                 
                 setLists(prev => [...prev, response.data]);
                 setShowSuccess(true);
