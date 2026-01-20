@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Folder Structure – Laptop Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-container {
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .code-header {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .code-content {
+            padding: 0;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+            padding: 16px;
+            color: #e2e8f0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .folder-icon {
+            color: #fbbf24;
+        }
+        .file-icon {
+            color: #60a5fa;
+        }
+        .config-icon {
+            color: #34d399;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .endpoint-badge {
+            background-color: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-6">
+        <!-- Header -->
+        <header class="gradient-bg text-white rounded-2xl p-6 md:p-8 mb-8 shadow-lg">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2">Laptop Registration System</h1>
+                    <p class="text-blue-100">Spring Boot Backend Documentation</p>
+                </div>
+                <div class="mt-4 md:mt-0 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-server text-xl"></i>
+                        <div>
+                            <p class="font-semibold">Java Spring Boot</p>
+                            <p class="text-sm text-blue-100">Backend API</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Overview -->
+        <section class="mb-10">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-sitemap mr-3 text-purple-600"></i>
+                    Architecture Flow
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <i class="fas fa-globe text-blue-600 text-2xl mb-2"></i>
+                        <p class="font-semibold">Client</p>
+                        <p class="text-sm text-gray-600">HTTP Request</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <i class="fas fa-code text-green-600 text-2xl mb-2"></i>
+                        <p class="font-semibold">Controller</p>
+                        <p class="text-sm text-gray-600">API Endpoints</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <i class="fas fa-database text-yellow-600 text-2xl mb-2"></i>
+                        <p class="font-semibold">Repository</p>
+                        <p class="text-sm text-gray-600">Database Operations</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Folder Structure -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column - Folders -->
+            <div>
+                <!-- Root Level -->
+                <section class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-folder-open folder-icon mr-2"></i>
+                        Root Directory
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="bg-white card-hover p-4 rounded-xl shadow border-l-4 border-blue-500">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-code file-icon mr-3"></i>
+                                <div>
+                                    <strong>pom.xml</strong>
+                                    <p class="text-sm text-gray-600 mt-1">Maven dependencies and project configuration</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white card-hover p-4 rounded-xl shadow border-l-4 border-green-500">
+                            <div class="flex items-center">
+                                <i class="fas fa-box config-icon mr-3"></i>
+                                <div>
+                                    <strong>Dockerfile</strong>
+                                    <p class="text-sm text-gray-600 mt-1">Containerization instructions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white card-hover p-4 rounded-xl shadow border-l-4 border-purple-500">
+                            <div class="flex items-center">
+                                <i class="fas fa-terminal file-icon mr-3"></i>
+                                <div>
+                                    <strong>mvnw / mvnw.cmd</strong>
+                                    <p class="text-sm text-gray-600 mt-1">Maven wrapper scripts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Source Code -->
+                <section class="mb-8">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-code folder-icon mr-2"></i>
+                        Source Code (src/main/java)
+                    </h2>
+                    <div class="space-y-4">
+                        <!-- Main Application -->
+                        <div class="bg-white card-hover p-4 rounded-xl shadow border-l-4 border-red-500">
+                            <div class="flex items-center">
+                                <i class="fas fa-play-circle text-red-500 mr-3"></i>
+                                <div>
+                                    <strong>LaptopRegistrationApplication.java</strong>
+                                    <p class="text-sm text-gray-600 mt-1">Main Spring Boot application entry point</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controllers -->
+                        <div class="bg-white card-hover p-4 rounded-xl shadow">
+                            <h3 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="fas fa-network-wired text-blue-500 mr-2"></i>
+                                Controller Layer
+                            </h3>
+                            <div class="ml-6 space-y-2">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                    <span><strong>AuthController.java</strong> - Authentication APIs</span>
+                                    <span class="endpoint-badge ml-2">POST /api/auth/login</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                    <span><strong>LaptopController.java</strong> - Laptop CRUD operations</span>
+                                    <span class="endpoint-badge ml-2">8 endpoints</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Models -->
+                        <div class="bg-white card-hover p-4 rounded-xl shadow">
+                            <h3 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="fas fa-table text-green-500 mr-2"></i>
+                                Model Layer
+                            </h3>
+                            <div class="ml-6 space-y-2">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span><strong>Laptop.java</strong> - Laptop entity with 12 fields</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                    <span><strong>User.java</strong> - User entity</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DTO -->
+                        <div class="bg-white card-hover p-4 rounded-xl shadow">
+                            <div class="flex items-center">
+                                <i class="fas fa-exchange-alt text-purple-500 mr-3"></i>
+                                <div>
+                                    <strong>LoginRequest.java</strong>
+                                    <p class="text-sm text-gray-600 mt-1">Data Transfer Object for authentication</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column - Code Examples -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-file-code text-blue-600 mr-3"></i>
+                    Code Examples
+                </h2>
+
+                <!-- Auth Controller -->
+                <div class="mb-6">
+                    <div class="code-container">
+                        <div class="code-header" onclick="toggleCode('auth-controller')">
+                            <div class="flex items-center">
+                                <i class="fas fa-lock mr-2"></i>
+                                <span>AuthController.java - Authentication Endpoints</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="auth-controller-arrow"></i>
+                        </div>
+                        <div class="code-content" id="auth-controller" style="max-height: 0;">
+                            <pre><code>package com.mulusew.laptop_registration.controller;
+
+import com.mulusew.laptop_registration.dto.LoginRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+public class AuthController {
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    
+    @Value("${admin.email}")
+    private String adminEmail;
+    
+    @Value("${admin.password}")
+    private String adminPassword;
+
+    @PostConstruct
+    public void init() {
+        log.info("AuthController LOADED! Admin email: {}", adminEmail);
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
+        
+        if (!adminEmail.equals(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Invalid email");
+        }
+        if (!adminPassword.equals(request.getPassword())) {
+            return ResponseEntity.badRequest().body("Invalid password");
+        }
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Admin login successful");
+        return ResponseEntity.ok(response);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laptop Controller -->
+                <div class="mb-6">
+                    <div class="code-container">
+                        <div class="code-header" onclick="toggleCode('laptop-controller')">
+                            <div class="flex items-center">
+                                <i class="fas fa-laptop mr-2"></i>
+                                <span>LaptopController.java - CRUD Operations</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="laptop-controller-arrow"></i>
+                        </div>
+                        <div class="code-content" id="laptop-controller" style="max-height: 0;">
+                            <pre><code>package com.mulusew.laptop_registration.controller;
+
+import com.mulusew.laptop_registration.model.Laptop;
+import com.mulusew.laptop_registration.repository.LaptopRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/laptops")
+@CrossOrigin(origins = {"http://localhost:5173", "https://laptop-reg.vercel.app"})
+public class LaptopController {
+    
+    private static final Logger log = LoggerFactory.getLogger(LaptopController.class);
+    private final LaptopRepository laptopRepository;
+    
+    // 1. Register new laptop
+    @PostMapping("/register")
+    public ResponseEntity<?> registerLaptop(@RequestBody Laptop laptop) {
+        log.info("Registering new laptop for student: {}", laptop.getStudentName());
+        
+        // Check for duplicates
+        if (laptopRepository.findByStudentId(laptop.getStudentId()).isPresent()) {
+            return ResponseEntity.badRequest().body("Student already registered");
+        }
+        
+        Laptop savedLaptop = laptopRepository.save(laptop);
+        return ResponseEntity.ok(savedLaptop);
+    }
+    
+    // 2. Get all laptops
+    @GetMapping
+    public ResponseEntity<List<Laptop>> getAllLaptops() {
+        List<Laptop> laptops = laptopRepository.findAll();
+        return ResponseEntity.ok(laptops);
+    }
+    
+    // 3. Get laptop stats
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        long total = laptopRepository.count();
+        long verified = laptopRepository.findByVerified(true).size();
+        
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", total);
+        stats.put("verified", verified);
+        return ResponseEntity.ok(stats);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laptop Model -->
+                <div class="mb-6">
+                    <div class="code-container">
+                        <div class="code-header" onclick="toggleCode('laptop-model')">
+                            <div class="flex items-center">
+                                <i class="fas fa-database mr-2"></i>
+                                <span>Laptop.java - Entity Model</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="laptop-model-arrow"></i>
+                        </div>
+                        <div class="code-content" id="laptop-model" style="max-height: 0;">
+                            <pre><code>package com.mulusew.laptop_registration.model;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "laptops")
+public class Laptop {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "student_name", nullable = false)
+    private String studentName;
+    
+    @Column(name = "student_id", nullable = false, unique = true)
+    private String studentId;
+    
+    @Column(name = "serial_number", nullable = false, unique = true)
+    private String serialNumber;
+    
+    @Column(name = "mac_address", nullable = false, unique = true)
+    private String macAddress;
+    
+    @Column(name = "verified")
+    private boolean verified = false;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // Getters and setters for all fields
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getStudentName() { return studentName; }
+    public void setStudentName(String studentName) { this.studentName = studentName; }
+    
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Application -->
+                <div class="mb-6">
+                    <div class="code-container">
+                        <div class="code-header" onclick="toggleCode('main-app')">
+                            <div class="flex items-center">
+                                <i class="fas fa-rocket mr-2"></i>
+                                <span>LaptopRegistrationApplication.java - Main Class</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="main-app-arrow"></i>
+                        </div>
+                        <div class="code-content" id="main-app" style="max-height: 0;">
+                            <pre><code>package com.mulusew.laptop_registration;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {
+    "com.mulusew.laptop_registration",
+    "com.mulusew.laptop_registration.controller",
+    "com.mulusew.laptop_registration.dto"
+})
+public class LaptopRegistrationApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(LaptopRegistrationApplication.class, args);
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Endpoints Summary -->
+        <section class="mt-10">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-plug text-green-600 mr-3"></i>
+                    Available API Endpoints
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Endpoint</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">POST</span></td>
+                                <td class="px-4 py-3 font-mono">/api/auth/login</td>
+                                <td class="px-4 py-3">Admin authentication</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">GET</span></td>
+                                <td class="px-4 py-3 font-mono">/api/laptops</td>
+                                <td class="px-4 py-3">Get all registered laptops</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-medium">POST</span></td>
+                                <td class="px-4 py-3 font-mono">/api/laptops/register</td>
+                                <td class="px-4 py-3">Register new laptop</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm font-medium">GET</span></td>
+                                <td class="px-4 py-3 font-mono">/api/laptops/stats</td>
+                                <td class="px-4 py-3">Get registration statistics</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-500 mt-10 pt-6 border-t border-gray-200">
+            <p>© Laptop Registration System – Backend Documentation</p>
+            <p class="text-sm mt-2">Built with Spring Boot • Java • Maven • PostgreSQL</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleCode(id) {
+            const content = document.getElementById(id);
+            const arrow = document.getElementById(id + '-arrow');
+            
+            if (content.style.maxHeight === '0px' || content.style.maxHeight === '') {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                arrow.classList.remove('fa-chevron-down');
+                arrow.classList.add('fa-chevron-up');
+            } else {
+                content.style.maxHeight = '0px';
+                arrow.classList.remove('fa-chevron-up');
+                arrow.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Initialize with first code block open
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleCode('auth-controller');
+        });
+    </script>
+</body>
+</html>
